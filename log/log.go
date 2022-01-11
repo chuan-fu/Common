@@ -1,7 +1,6 @@
 package log
 
 import (
-	"Common/util"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -100,7 +99,7 @@ func (lc LogConfig) buildLog4Cmd() (logger *zap.Logger) {
 var logger *zap.Logger
 
 func init() {
-	if util.IsExist(defaultConfFilePath) {
+	if CheckExist(defaultConfFilePath) {
 		if bs, err := ioutil.ReadFile(defaultConfFilePath); err == nil {
 			logger = initZapLog(bs)
 			return
@@ -203,4 +202,11 @@ func splitLogValue(v []interface{}) ([]zap.Field, []interface{}) {
 // 使用前必须 defer log.Flush()
 func Flush() {
 	_ = logger.Sync()
+}
+
+func CheckExist(path string) bool {
+	if _, err := os.Stat(path); err != nil && os.IsNotExist(err) {
+		return false
+	}
+	return true
 }

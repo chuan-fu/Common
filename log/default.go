@@ -17,7 +17,7 @@ zapConfig:
   disableCaller: false
   disableStacktrace: false
   sampling:
-  encoding: json
+  encoding: consul
   outputPaths:
     - stdout
     - "./log/sys.log"
