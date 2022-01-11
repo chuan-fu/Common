@@ -1,4 +1,4 @@
-module Common
+module github.com/chuan-fu/Common
 
 go 1.16
 
