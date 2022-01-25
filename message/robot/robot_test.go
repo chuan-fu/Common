@@ -29,7 +29,7 @@ func TestRobot_SendMarkdown(t *testing.T) {
 										>类型:<font color=\"comment\">用户反馈</font>
          								>普通用户反馈:<font color=\"comment\">117例</font>
                                         >VIP用户反馈:<font color=\"comment\">15例</font>`,
-				userId: []string{},
+				userId: []string{"<@xxx>"},
 			},
 		},
 	}
