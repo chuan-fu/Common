@@ -1,12 +1,17 @@
 package email
 
-import "gopkg.in/gomail.v2"
+import (
+	"context"
+
+	"gopkg.in/gomail.v2"
+)
 
 func NewClient(host string, port int, username, password string) *gomail.Dialer {
 	return gomail.NewDialer(host, port, username, password)
 }
 
 type message struct {
+	ctx context.Context
 	msg *gomail.Message
 }
 
@@ -31,6 +36,11 @@ func (m *message) SetSubject(d string) *message {
 
 func (m *message) SetHtml(d string) *message {
 	m.msg.SetBody("text/html", d)
+	return m
+}
+
+func (m *message) SetContext(ctx context.Context) *message {
+	m.ctx = ctx
 	return m
 }
 
