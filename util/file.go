@@ -1,12 +1,13 @@
 package util
 
 import (
-	"Common/log"
 	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+
+	"github.com/chuan-fu/Common/log"
 )
 
 func CheckExist(path string) bool {

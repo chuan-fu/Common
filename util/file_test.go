@@ -1,9 +1,10 @@
 package util
 
 import (
-	"Common/log"
 	"fmt"
 	"testing"
+
+	"github.com/chuan-fu/Common/log"
 )
 
 func TestReadFileLine(t *testing.T) {

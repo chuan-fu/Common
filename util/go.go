@@ -1,6 +1,6 @@
 package util
 
-import "Common/log"
+import "github.com/chuan-fu/Common/log"
 
 func DeferFunc() {
 	if e := recover(); e != nil {
