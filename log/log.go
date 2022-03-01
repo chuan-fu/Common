@@ -16,11 +16,11 @@ type LogConfig struct {
 	ZapConfig  zap.Config         `yaml:"zapConfig"`
 }
 
-func (lc LogConfig) Build() (logger *zap.Logger) {
+func (lc *LogConfig) Build() (logger *zap.Logger) {
 	return lc.buildRollLog()
 }
 
-func (lc LogConfig) buildRollLog() (logger *zap.Logger) {
+func (lc *LogConfig) buildRollLog() (logger *zap.Logger) {
 	hook := lc.Lumberjack
 	if hook == nil {
 		hook = &lumberjack.Logger{}
@@ -50,9 +50,7 @@ func (lc LogConfig) buildRollLog() (logger *zap.Logger) {
 		atomicLevel, // 日志级别
 	)
 
-	var opts []zap.Option
-	opts = append(opts, zap.AddStacktrace(zap.DPanicLevel))
-	opts = append(opts, zap.AddCallerSkip(1))
+	opts := []zap.Option{zap.AddStacktrace(zap.DPanicLevel), zap.AddCallerSkip(1)}
 	if lc.ZapConfig.Development {
 		opts = append(opts, zap.Development())
 	}
@@ -84,10 +82,8 @@ func (lc LogConfig) buildRollLog() (logger *zap.Logger) {
 }
 
 // 命令行应用log
-func (lc LogConfig) buildLog4Cmd() (logger *zap.Logger) {
-	var opts []zap.Option
-	opts = append(opts, zap.AddStacktrace(zap.DPanicLevel))
-	opts = append(opts, zap.AddCallerSkip(1))
+func (lc *LogConfig) buildLog4Cmd() (logger *zap.Logger) {
+	opts := []zap.Option{zap.AddStacktrace(zap.DPanicLevel), zap.AddCallerSkip(1)}
 	var err error
 	logger, err = lc.ZapConfig.Build(opts...)
 	if err != nil {
