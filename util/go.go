@@ -1,10 +1,24 @@
 package util
 
-import "github.com/chuan-fu/Common/log"
+import (
+	"fmt"
+	"runtime"
+	"runtime/debug"
+
+	"github.com/chuan-fu/Common/log"
+	"github.com/pkg/errors"
+)
 
 func DeferFunc() {
 	if e := recover(); e != nil {
-		log.Errorf("DeferFunc panic : %v", e)
+		funcname := ""
+		pc, _, _, ok := runtime.Caller(1)
+		if ok {
+			funcname = runtime.FuncForPC(pc).Name() // main.(*MyStruct).foo
+		}
+		err := errors.New(fmt.Sprintf("panic at(%v): %v", funcname, e))
+		log.Error(err)
+		log.Errorf(string(debug.Stack()))
 	}
 }
 
