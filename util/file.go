@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/chuan-fu/Common/log"
 )
@@ -44,6 +45,7 @@ func ReadFileLine(path string) (<-chan []byte, error) {
 			}
 			c <- line
 		}
+		close(ch)
 	}(fi, ch)
 
 	return ch, nil
@@ -87,16 +89,24 @@ func Remove(path string) error {
 }
 
 // 遍历读取目录
-func ReadPath(path string) <-chan string {
-	ch := make(chan string, 0)
-	if path[len(path)-1] != '/' {
-		path += "/"
+func ReadPath(paths ...string) <-chan string {
+	ch := make(chan string)
+	for k := range paths {
+		if !strings.HasSuffix(paths[k], "/") { // 添加后缀/
+			paths[k] += "/"
+		}
+		if _, err := os.Stat(paths[k]); err != nil { // 查询目录是否存在，如果不存在，则报错
+			panic(err)
+		}
 	}
-	go func(path string, c chan<- string) {
+
+	go func(pathList []string, c chan<- string) {
 		defer DeferFunc()
 		defer close(c)
-		readDir(path, c)
-	}(path, ch)
+		for k := range pathList {
+			readDir(pathList[k], c)
+		}
+	}(paths, ch)
 
 	return ch
 }
@@ -109,7 +119,9 @@ func readDir(path string, c chan<- string) {
 	}
 	for _, fi := range rds {
 		if fi.IsDir() {
-			readDir(fmt.Sprintf(`%s%s/`, path, fi.Name()), c)
+			p2 := fmt.Sprintf(`%s%s/`, path, fi.Name())
+			c <- p2
+			readDir(p2, c)
 		} else {
 			c <- path + fi.Name()
 		}
