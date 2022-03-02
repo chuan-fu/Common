@@ -13,6 +13,7 @@ import (
 
 func newConsoleWriter(noColor bool) io.Writer {
 	return zerolog.ConsoleWriter{
+		NoColor:     noColor,
 		Out:         os.Stderr,
 		TimeFormat:  defaultTimeFormat,
 		FormatLevel: consoleFormatLevel(noColor),
