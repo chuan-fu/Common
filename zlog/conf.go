@@ -2,11 +2,24 @@ package log
 
 import "github.com/rs/zerolog"
 
+/*
+type Config struct {
+	Log log.ZlogConf `json:"log" yaml:"log"`
+}
+
+log:
+	sysName: Common
+	logLevel: info
+	encoding: json
+	noColor: true
+
+*/
+
 type ZlogConf struct {
-	SysName  string `default:"Common"`
-	LogLevel string `default:"info"`
-	Encoding string `default:"json"`
-	NoColor  bool   `default:"false"`
+	SysName  string `default:"Common" json:"sysName" yaml:"sysName"`
+	LogLevel string `default:"info" json:"logLevel" yaml:"logLevel"`
+	Encoding string `default:"json" json:"encoding" yaml:"encoding"`
+	NoColor  bool   `default:"true" json:"noColor" yaml:"noColor"`
 }
 
 func (z *ZlogConf) getLevel() zerolog.Level {
