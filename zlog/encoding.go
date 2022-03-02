@@ -13,10 +13,11 @@ import (
 
 func newConsoleWriter(noColor bool) io.Writer {
 	return zerolog.ConsoleWriter{
-		NoColor:     noColor,
-		Out:         os.Stderr,
-		TimeFormat:  defaultTimeFormat,
-		FormatLevel: consoleFormatLevel(noColor),
+		Out:          os.Stderr,
+		NoColor:      noColor,
+		TimeFormat:   defaultTimeFormat,
+		FormatLevel:  consoleFormatLevel(noColor),
+		FormatCaller: consoleFormatCaller(noColor),
 	}
 }
 
@@ -52,5 +53,22 @@ func consoleFormatLevel(noColor bool) zerolog.Formatter {
 		default:
 			return util.Colorize("?????", util.ColorBold, noColor)
 		}
+	}
+}
+
+func consoleFormatCaller(noColor bool) zerolog.Formatter {
+	return func(i interface{}) string {
+		if i == nil {
+			return ""
+		}
+		s, ok := i.(string)
+		if !ok {
+			s = fmt.Sprintf("%v", i)
+		}
+
+		if s != "" {
+			s = util.Colorize(s, util.ColorBold, noColor) + util.Colorize(" >", util.ColorCyan, noColor)
+		}
+		return s
 	}
 }
