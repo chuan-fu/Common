@@ -1,9 +1,18 @@
 package configor
 
-import jConfigor "github.com/jinzhu/configor"
+import (
+	"github.com/chuan-fu/Common/zlog"
+	jConfigor "github.com/jinzhu/configor"
+)
 
 func Load(config interface{}, files ...string) error {
 	return jConfigor.Load(config, files...)
+}
+
+func MustLoad(config interface{}, files ...string) {
+	if err := jConfigor.Load(config, files...); err != nil {
+		log.Fatal(err)
+	}
 }
 
 /*
