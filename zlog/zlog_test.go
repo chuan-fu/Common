@@ -6,7 +6,8 @@ import (
 
 func TestZlog(t *testing.T) {
 	ReloadLogger(ZlogConf{
-		SysName: "dpm",
+		SysName:  "dpm",
+		Encoding: "console",
 	})
 	Debug("aa")
 	Info("aa")

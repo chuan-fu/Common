@@ -14,6 +14,6 @@ func NewStackHook() zerolog.Hook {
 
 func (StackHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
 	if level == zerolog.FatalLevel || level == zerolog.PanicLevel {
-		e.Str("stack", string(debug.Stack()))
+		e.Str(stackKey, string(debug.Stack()))
 	}
 }

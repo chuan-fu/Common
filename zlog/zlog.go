@@ -1,14 +1,16 @@
 package log
 
 import (
-	"os"
+	"io"
 
 	"github.com/rs/zerolog"
 )
 
 const (
-	skipFrameCount = 3
-	sysNameKey     = "sysname"
+	skipFrameCount    = 3
+	sysNameKey        = "sysname"
+	stackKey          = "stack"
+	defaultTimeFormat = "2006-01-02 15:04:05"
 )
 
 var zlogger *logger
@@ -20,22 +22,35 @@ func init() {
 	})
 }
 
-func ReloadLogger(conf ZlogConf) {
-	zlogger = NewLogger(conf)
+func ReloadLogger(conf ZlogConf, ws ...io.Writer) {
+	zlogger = NewLogger(conf, ws...)
 }
 
-func NewLogger(conf ZlogConf) *logger {
+func NewLogger(conf ZlogConf, ws ...io.Writer) *logger {
 	zerolog.SetGlobalLevel(conf.getLevel()) // 修改日志等级
 	zerolog.CallerFieldName = "gofile"
 	zerolog.MessageFieldName = "msg"
-	zerolog.TimeFieldFormat = "2006-01-02 15:04:05"
+	zerolog.TimeFieldFormat = defaultTimeFormat
 	l := &logger{
-		log: zerolog.New(os.Stderr).
-			With().Timestamp().CallerWithSkipFrameCount(skipFrameCount).Logger().
+		log: newEncodingLogger(conf.getEncoding(), ws...).With().Str(sysNameKey, conf.SysName).Timestamp().CallerWithSkipFrameCount(skipFrameCount).Logger().
 			Hook(NewStackHook()), // 添加stack钩子
 		sysName: conf.SysName,
 	}
 	return l
+}
+
+func newEncodingLogger(encoding string, ws ...io.Writer) zerolog.Logger {
+	var w io.Writer
+	switch encoding {
+	case EncodingConsole:
+		w = newConsoleWriter()
+	default:
+		w = newJsonWriter()
+	}
+	if len(ws) > 0 {
+		return zerolog.New(zerolog.MultiLevelWriter(append(ws, w)...))
+	}
+	return zerolog.New(w)
 }
 
 func SetTimeFieldFormat(data string) {
@@ -52,29 +67,29 @@ func Logger() *logger {
 }
 
 func (l *logger) TraceEvent() *zerolog.Event {
-	return l.log.Trace().Str(sysNameKey, l.sysName)
+	return l.log.Trace()
 }
 
 func (l *logger) DebugEvent() *zerolog.Event {
-	return l.log.Debug().Str(sysNameKey, l.sysName)
+	return l.log.Debug()
 }
 
 func (l *logger) InfoEvent() *zerolog.Event {
-	return l.log.Info().Str(sysNameKey, l.sysName)
+	return l.log.Info()
 }
 
 func (l *logger) WarnEvent() *zerolog.Event {
-	return l.log.Warn().Str(sysNameKey, l.sysName)
+	return l.log.Warn()
 }
 
 func (l *logger) ErrorEvent() *zerolog.Event {
-	return l.log.Error().Str(sysNameKey, l.sysName)
+	return l.log.Error()
 }
 
 func (l *logger) FatalEvent() *zerolog.Event {
-	return l.log.Fatal().Str(sysNameKey, l.sysName)
+	return l.log.Fatal()
 }
 
 func (l *logger) PanicEvent() *zerolog.Event {
-	return l.log.Panic().Str(sysNameKey, l.sysName)
+	return l.log.Panic()
 }

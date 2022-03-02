@@ -5,6 +5,7 @@ import "github.com/rs/zerolog"
 type ZlogConf struct {
 	SysName  string `default:"Common"`
 	LogLevel string `default:"info"`
+	Encoding string `default:"json"`
 }
 
 func (z *ZlogConf) getLevel() zerolog.Level {
@@ -25,5 +26,19 @@ func (z *ZlogConf) getLevel() zerolog.Level {
 		return zerolog.PanicLevel
 	default:
 		return zerolog.TraceLevel
+	}
+}
+
+const (
+	EncodingJson    = "json"
+	EncodingConsole = "console"
+)
+
+func (z *ZlogConf) getEncoding() string {
+	switch z.Encoding {
+	case EncodingJson, EncodingConsole:
+		return z.Encoding
+	default:
+		return EncodingJson
 	}
 }
