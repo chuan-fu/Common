@@ -1,4 +1,4 @@
-package zlog
+package log
 
 import (
 	"testing"
@@ -12,5 +12,5 @@ func TestZlog(t *testing.T) {
 	Info("aa")
 	Warn("aa")
 	Error("aa")
-	Panic("aaa")
+	Fatal("aaa")
 }

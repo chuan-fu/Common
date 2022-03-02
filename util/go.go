@@ -11,12 +11,12 @@ import (
 
 func DeferFunc() {
 	if e := recover(); e != nil {
-		funcname := ""
+		var funcName string
 		pc, _, _, ok := runtime.Caller(1)
 		if ok {
-			funcname = runtime.FuncForPC(pc).Name() // main.(*MyStruct).foo
+			funcName = runtime.FuncForPC(pc).Name() // main.(*MyStruct).foo
 		}
-		err := errors.New(fmt.Sprintf("panic at(%v): %v", funcname, e))
+		err := errors.New(fmt.Sprintf("panic at(%v): %v", funcName, e))
 		log.Error(err)
 		log.Errorf(string(debug.Stack()))
 	}

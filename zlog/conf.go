@@ -1,4 +1,4 @@
-package zlog
+package log
 
 import "github.com/rs/zerolog"
 

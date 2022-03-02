@@ -1,4 +1,4 @@
-package zlog
+package log
 
 import (
 	"os"
@@ -26,10 +26,12 @@ func ReloadLogger(conf ZlogConf) {
 
 func NewLogger(conf ZlogConf) *logger {
 	zerolog.SetGlobalLevel(conf.getLevel()) // 修改日志等级
+	zerolog.CallerFieldName = "gofile"
+	zerolog.MessageFieldName = "msg"
 	l := &logger{
 		log: zerolog.New(os.Stderr).
-			With().CallerWithSkipFrameCount(skipFrameCount).Timestamp().Logger(),
-		// Hook(NewStackHook()), // 添加stack钩子
+			With().Timestamp().CallerWithSkipFrameCount(skipFrameCount).Logger().
+			Hook(NewStackHook()), // 添加stack钩子
 		sysName: conf.SysName,
 	}
 	return l

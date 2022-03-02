@@ -1,4 +1,4 @@
-package zlog
+package log
 
 import (
 	"runtime/debug"
@@ -13,7 +13,7 @@ func NewStackHook() zerolog.Hook {
 }
 
 func (StackHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
-	if level >= zerolog.ErrorLevel {
+	if level == zerolog.FatalLevel || level == zerolog.PanicLevel {
 		e.Str("stack", string(debug.Stack()))
 	}
 }
