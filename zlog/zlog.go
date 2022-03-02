@@ -28,6 +28,7 @@ func NewLogger(conf ZlogConf) *logger {
 	zerolog.SetGlobalLevel(conf.getLevel()) // 修改日志等级
 	zerolog.CallerFieldName = "gofile"
 	zerolog.MessageFieldName = "msg"
+	zerolog.TimeFieldFormat = "2006-01-02 15:04:05"
 	l := &logger{
 		log: zerolog.New(os.Stderr).
 			With().Timestamp().CallerWithSkipFrameCount(skipFrameCount).Logger().
@@ -35,6 +36,10 @@ func NewLogger(conf ZlogConf) *logger {
 		sysName: conf.SysName,
 	}
 	return l
+}
+
+func SetTimeFieldFormat(data string) {
+	zerolog.TimeFieldFormat = data
 }
 
 type logger struct {
