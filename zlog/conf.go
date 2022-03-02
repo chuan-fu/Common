@@ -17,7 +17,7 @@ log:
 
 type ZlogConf struct {
 	SysName  string `default:"Common" json:"sysName" yaml:"sysName"`
-	LogLevel string `default:"info" json:"logLevel" yaml:"logLevel"`
+	LogLevel string `default:"trace" json:"logLevel" yaml:"logLevel"`
 	Encoding string `default:"json" json:"encoding" yaml:"encoding"`
 	NoColor  bool   `default:"true" json:"noColor" yaml:"noColor"`
 }
