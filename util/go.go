@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"runtime/debug"
 
-	"github.com/chuan-fu/Common/log"
+	"github.com/chuan-fu/Common/zlog"
 	"github.com/pkg/errors"
 )
 

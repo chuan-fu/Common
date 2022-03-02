@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chuan-fu/Common/log"
+	"github.com/chuan-fu/Common/zlog"
 	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

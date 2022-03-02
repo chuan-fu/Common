@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/chuan-fu/Common/log"
+	"github.com/chuan-fu/Common/zlog"
 )
 
 func TestReadFileLine(t *testing.T) {

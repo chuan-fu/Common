@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/chuan-fu/Common/log"
+	"github.com/chuan-fu/Common/zlog"
 )
 
 func CheckExist(path string) bool {

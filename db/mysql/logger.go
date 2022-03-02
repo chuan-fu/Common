@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chuan-fu/Common/log"
+	"github.com/chuan-fu/Common/zlog"
 	"github.com/pkg/errors"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/utils"
