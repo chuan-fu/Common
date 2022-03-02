@@ -12,14 +12,29 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+/*
+type Config struct {
+	Mysql mysql.MysqlConf `json:"mysql" yaml:"mysql"`
+}
+
+mysql:
+	dataSourceName: root:123456@tcp(0.0.0.0:3306)/user?charset-utf8mb4
+	MaxOpenConns: 2000
+	MaxIdleConns: 1000
+	ConnMaxLifetime: -1
+	debug: true
+	LogLevel: info
+	IgnoreRecordNotFoundError: true
+
+*/
 type MysqlConf struct {
-	DataSourceName            string `required:"true"` // 主库
-	MaxOpenConns              int    `default:"200"`   // 最大连接数
-	MaxIdleConns              int    `default:"50"`    // 最大空闲连接数
-	ConnMaxLifetime           int64  `default:"21600"` // 连接可以重用的最长时间
-	Debug                     bool   `default:"false"` // 是否开启debug
-	LogLevel                  string `default:"error"` // 日志等级
-	IgnoreRecordNotFoundError bool   `default:"false"` // 是否忽略记录未找到bug
+	DataSourceName            string `required:"true" json:"dataSourceName" yaml:"dataSourceName"`                       // 主库
+	MaxOpenConns              int    `default:"200" json:"maxOpenConns" yaml:"maxOpenConns"`                             // 最大连接数
+	MaxIdleConns              int    `default:"50" json:"maxIdleConns" yaml:"maxIdleConns"`                              // 最大空闲连接数
+	ConnMaxLifetime           int64  `default:"21600" json:"connMaxLifetime" yaml:"connMaxLifetime"`                     // 连接可以重用的最长时间
+	Debug                     bool   `default:"false" json:"debug" yaml:"debug"`                                         // 是否开启debug
+	LogLevel                  string `default:"error" json:"log_level" yaml:"log_level"`                                 // 日志等级
+	IgnoreRecordNotFoundError bool   `default:"false" json:"ignoreRecordNotFoundError" yaml:"ignoreRecordNotFoundError"` // 是否忽略记录未找到bug
 }
 
 var gormDb *gorm.DB

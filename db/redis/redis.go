@@ -8,10 +8,22 @@ import (
 	"github.com/pkg/errors"
 )
 
+/*
+type Config struct {
+	Redis redis.RedisConf `json:"redis" yaml:"redis"`
+}
+
+redis:
+	addr: 127.0.0.1:6379
+	password:
+	db: 0
+
+*/
+
 type RedisConf struct {
-	Addr     string `required:"true"`
-	Password string
-	DB       int `default:"0"`
+	Addr     string `required:"true" json:"addr" yaml:"addr"`
+	Password string `default:"" json:"password" yaml:"password"`
+	DB       int    `default:"0" json:"db" yaml:"db"`
 }
 
 var redisCli *redis.Client
