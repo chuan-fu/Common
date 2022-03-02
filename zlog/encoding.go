@@ -11,11 +11,11 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func newConsoleWriter() io.Writer {
+func newConsoleWriter(noColor bool) io.Writer {
 	return zerolog.ConsoleWriter{
 		Out:         os.Stderr,
 		TimeFormat:  defaultTimeFormat,
-		FormatLevel: consoleFormatLevel,
+		FormatLevel: consoleFormatLevel(noColor),
 	}
 }
 
@@ -23,31 +23,33 @@ func newJsonWriter() io.Writer {
 	return os.Stdout
 }
 
-func consoleFormatLevel(i interface{}) string {
-	l, ok := i.(string)
-	if !ok {
-		if i == nil {
-			return util.Colorize("?????", util.ColorBold)
+func consoleFormatLevel(noColor bool) zerolog.Formatter {
+	return func(i interface{}) string {
+		l, ok := i.(string)
+		if !ok {
+			if i == nil {
+				return util.Colorize("?????", util.ColorBold, noColor)
+			}
+			return strings.ToUpper(fmt.Sprintf("%v", i))
 		}
-		return strings.ToUpper(fmt.Sprintf("%v", i))
-	}
 
-	switch l {
-	case zerolog.LevelTraceValue:
-		return util.Colorize("TRACE", util.ColorMagenta)
-	case zerolog.LevelDebugValue:
-		return util.Colorize("DEBUG", util.ColorYellow)
-	case zerolog.LevelInfoValue:
-		return util.Colorize("INFO ", util.ColorGreen)
-	case zerolog.LevelWarnValue:
-		return util.Colorize("WARN ", util.ColorRed)
-	case zerolog.LevelErrorValue:
-		return util.Colorize(util.Colorize("ERROR", util.ColorRed), util.ColorBold)
-	case zerolog.LevelFatalValue:
-		return util.Colorize(util.Colorize("FATAL", util.ColorRed), util.ColorBold)
-	case zerolog.LevelPanicValue:
-		return util.Colorize(util.Colorize("PANIC", util.ColorRed), util.ColorBold)
-	default:
-		return util.Colorize("?????", util.ColorBold)
+		switch l {
+		case zerolog.LevelTraceValue:
+			return util.Colorize("TRACE", util.ColorMagenta, noColor)
+		case zerolog.LevelDebugValue:
+			return util.Colorize("DEBUG", util.ColorYellow, noColor)
+		case zerolog.LevelInfoValue:
+			return util.Colorize("INFO ", util.ColorGreen, noColor)
+		case zerolog.LevelWarnValue:
+			return util.Colorize("WARN ", util.ColorRed, noColor)
+		case zerolog.LevelErrorValue:
+			return util.Colorize(util.Colorize("ERROR", util.ColorRed, noColor), util.ColorBold, noColor)
+		case zerolog.LevelFatalValue:
+			return util.Colorize(util.Colorize("FATAL", util.ColorRed, noColor), util.ColorBold, noColor)
+		case zerolog.LevelPanicValue:
+			return util.Colorize(util.Colorize("PANIC", util.ColorRed, noColor), util.ColorBold, noColor)
+		default:
+			return util.Colorize("?????", util.ColorBold, noColor)
+		}
 	}
 }

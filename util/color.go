@@ -16,6 +16,9 @@ const (
 	ColorDarkGray = 90
 )
 
-func Colorize(s interface{}, c int) string {
+func Colorize(s interface{}, c int, noColor bool) string {
+	if noColor {
+		return fmt.Sprintf("%v", s)
+	}
 	return fmt.Sprintf("\x1b[%dm%v\x1b[0m", c, s)
 }

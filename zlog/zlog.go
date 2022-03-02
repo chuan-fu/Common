@@ -32,18 +32,18 @@ func NewLogger(conf ZlogConf, ws ...io.Writer) *logger {
 	zerolog.MessageFieldName = "msg"
 	zerolog.TimeFieldFormat = defaultTimeFormat
 	l := &logger{
-		log: newEncodingLogger(conf.getEncoding(), ws...).With().Str(sysNameKey, conf.SysName).Timestamp().CallerWithSkipFrameCount(skipFrameCount).Logger().
+		log: newEncodingLogger(&conf, ws...).With().Str(sysNameKey, conf.SysName).Timestamp().CallerWithSkipFrameCount(skipFrameCount).Logger().
 			Hook(NewStackHook()), // 添加stack钩子
 		sysName: conf.SysName,
 	}
 	return l
 }
 
-func newEncodingLogger(encoding string, ws ...io.Writer) zerolog.Logger {
+func newEncodingLogger(c *ZlogConf, ws ...io.Writer) zerolog.Logger {
 	var w io.Writer
-	switch encoding {
+	switch c.getEncoding() {
 	case EncodingConsole:
-		w = newConsoleWriter()
+		w = newConsoleWriter(c.NoColor)
 	default:
 		w = newJsonWriter()
 	}

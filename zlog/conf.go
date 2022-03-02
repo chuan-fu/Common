@@ -6,6 +6,7 @@ type ZlogConf struct {
 	SysName  string `default:"Common"`
 	LogLevel string `default:"info"`
 	Encoding string `default:"json"`
+	NoColor  bool   `default:"false"`
 }
 
 func (z *ZlogConf) getLevel() zerolog.Level {
