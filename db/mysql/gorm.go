@@ -19,12 +19,12 @@ type Config struct {
 
 mysql:
 	dataSourceName: root:123456@tcp(0.0.0.0:3306)/user?charset-utf8mb4
-	MaxOpenConns: 2000
-	MaxIdleConns: 1000
-	ConnMaxLifetime: -1
+	maxOpenConns: 2000
+	maxIdleConns: 1000
+	connMaxLifetime: -1
 	debug: true
-	LogLevel: info
-	IgnoreRecordNotFoundError: true
+	logLevel: info
+	ignoreRecordNotFoundError: true
 
 */
 type MysqlConf struct {
@@ -33,7 +33,7 @@ type MysqlConf struct {
 	MaxIdleConns              int    `default:"50" json:"maxIdleConns" yaml:"maxIdleConns"`                              // 最大空闲连接数
 	ConnMaxLifetime           int64  `default:"21600" json:"connMaxLifetime" yaml:"connMaxLifetime"`                     // 连接可以重用的最长时间
 	Debug                     bool   `default:"false" json:"debug" yaml:"debug"`                                         // 是否开启debug
-	LogLevel                  string `default:"error" json:"log_level" yaml:"log_level"`                                 // 日志等级
+	LogLevel                  string `default:"error" json:"logLevel" yaml:"logLevel"`                                   // 日志等级
 	IgnoreRecordNotFoundError bool   `default:"false" json:"ignoreRecordNotFoundError" yaml:"ignoreRecordNotFoundError"` // 是否忽略记录未找到bug
 }
 
