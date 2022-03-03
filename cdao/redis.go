@@ -10,19 +10,51 @@ import (
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
 )
 
 type BaseRedisOp interface {
+	GetCli() redis.Cmdable
 	SetKey(key string) BaseRedisOp
 	GetKey() string
 	SetTTL(ttl time.Duration) BaseRedisOp
 	GetTTL() time.Duration
 
 	Set(ctx context.Context, value string) error
-	SetNX(ctx context.Context, value string) error
+	SetNX(ctx context.Context, value string) (bool, error)
 	Get(ctx context.Context) (string, error)
 	Del(ctx context.Context) error
+
+	SetLock(ctx context.Context) (value string, ok bool, err error)
+	DelLock(ctx context.Context, value string) (int64, error)
+
+	PFAdd(ctx context.Context, els ...interface{}) error
+	PFCount(ctx context.Context) (count int64, err error)
+	PFMerge(ctx context.Context, keys ...string) error
 }
+
+/* delLockScript
+local v2 = redis.call("get", KEYS[1])
+if v2 then
+	if v2 == ARGV[1] then
+		redis.call("del", KEYS[1])
+		return 1
+	end
+	return -1
+end
+return 0
+*/
+const (
+	delLockScript        = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("del", KEYS[1]) return 1 end return 0 end return -1`
+	DelLockStatusNotOwn  = -1 // 非本人的锁【锁已过期，且已被锁定】
+	DelLockStatusExpired = 0  // 锁已过期
+	DelLockStatusSuccess = 1  // 删除成功
+)
+
+var (
+	DelLockStatusNotOwnErr  = errors.Wrap(errors.New("锁已过期，且已被锁定"), "BaseRedisOp DelLock")
+	DelLockStatusExpiredErr = errors.Wrap(errors.New("锁已过期"), "BaseRedisOp DelLock")
+)
 
 type baseRedisOp struct {
 	redisCli redis.Cmdable
@@ -39,6 +71,10 @@ func NewBaseRedisOp(redisCli ...redis.Cmdable) BaseRedisOp {
 
 func NewBaseRedisOpWithKT(key string, ttl time.Duration, redisCli ...redis.Cmdable) BaseRedisOp {
 	return NewBaseRedisOp(redisCli...).SetKey(key).SetTTL(ttl)
+}
+
+func (b *baseRedisOp) GetCli() redis.Cmdable {
+	return b.redisCli
 }
 
 func (b *baseRedisOp) SetKey(key string) BaseRedisOp {
@@ -68,12 +104,13 @@ func (b *baseRedisOp) Set(ctx context.Context, value string) error {
 }
 
 // 不存在则写入
-func (b *baseRedisOp) SetNX(ctx context.Context, value string) error {
-	_, err := b.redisCli.SetNX(ctx, b.key, value, b.ttl).Result()
+// ok=true写入成功，ok=false写入失败
+func (b *baseRedisOp) SetNX(ctx context.Context, value string) (bool, error) {
+	ok, err := b.redisCli.SetNX(ctx, b.key, value, b.ttl).Result()
 	if err != nil {
-		return errors.Wrap(err, "BaseRedisOp SetNX")
+		return ok, errors.Wrap(err, "BaseRedisOp SetNX")
 	}
-	return nil
+	return ok, nil
 }
 
 // 如果不存在，data为空字符串，不报错
@@ -107,6 +144,67 @@ func (b *baseRedisOp) Del(ctx context.Context) error {
 		return errors.Wrap(err, "BaseRedisOp Del")
 	}
 	return nil
+}
+
+// 分布式锁 写入
+// value为uuid，ok为是否写入成功
+func (b *baseRedisOp) SetLock(ctx context.Context) (value string, ok bool, err error) {
+	value = uuid.NewV4().String()
+	ok, err = b.redisCli.SetNX(ctx, b.key, value, b.ttl).Result()
+	if err != nil {
+		err = errors.Wrap(err, "BaseRedisOp SetLock")
+		return
+	}
+	return
+}
+
+// 分布式锁 写入
+// value为uuid，ok为是否写入成功
+func (b *baseRedisOp) DelLock(ctx context.Context, value string) (int64, error) {
+	resI, err := b.redisCli.Eval(ctx, delLockScript, []string{b.key}, value).Result()
+	if err != nil {
+		err = errors.Wrap(err, "BaseRedisOp DelLock")
+		return 0, err
+	}
+
+	res, _ := resI.(int64)
+	switch res {
+	case DelLockStatusExpired:
+		return res, DelLockStatusExpiredErr
+	case DelLockStatusNotOwn:
+		return res, DelLockStatusNotOwnErr
+	}
+	return res, nil
+}
+
+// 基数统计 写入
+func (b *baseRedisOp) PFAdd(ctx context.Context, els ...interface{}) error {
+	_, err := b.redisCli.PFAdd(ctx, b.key, els...).Result()
+	if err != nil {
+		err = errors.Wrap(err, "BaseRedisOp PfAdd")
+		return err
+	}
+	return nil
+}
+
+// 基数统计 统计
+// key不存在 不会redis.Nil 无需判断IsNil
+func (b *baseRedisOp) PFCount(ctx context.Context) (count int64, err error) {
+	count, err = b.redisCli.PFCount(ctx, b.key).Result()
+	if err != nil {
+		err = errors.Wrap(err, "BaseRedisOp PFCount")
+	}
+	return
+}
+
+// 基数统计 统计
+// 把keys的数据 统计到b.key里
+func (b *baseRedisOp) PFMerge(ctx context.Context, keys ...string) error {
+	_, err := b.redisCli.PFMerge(ctx, b.key, keys...).Result()
+	if err != nil {
+		err = errors.Wrap(err, "BaseRedisOp PFMerge")
+	}
+	return err
 }
 
 func IsRedisNil(err error) bool {

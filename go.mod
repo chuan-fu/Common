@@ -8,6 +8,7 @@ require (
 	github.com/jinzhu/configor v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.26.1
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0
 	go.uber.org/zap v1.20.0
 	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
