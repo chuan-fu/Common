@@ -39,7 +39,7 @@ type MysqlConf struct {
 
 var gormDb *gorm.DB
 
-func GetGormDB() *gorm.DB {
+func GetGorm() *gorm.DB {
 	return gormDb
 }
 

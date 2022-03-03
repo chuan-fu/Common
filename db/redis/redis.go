@@ -26,9 +26,9 @@ type RedisConf struct {
 	DB       int    `default:"0" json:"db" yaml:"db"`
 }
 
-var redisCli *redis.Client
+var redisCli redis.Cmdable
 
-func GetRedisCli() *redis.Client {
+func GetRedisCli() redis.Cmdable {
 	return redisCli
 }
 
