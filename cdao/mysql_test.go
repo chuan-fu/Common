@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/chuan-fu/Common/db/mysql"
-	log "github.com/chuan-fu/Common/zlog"
+	"github.com/chuan-fu/Common/zlog"
 )
 
 // 检测字典表

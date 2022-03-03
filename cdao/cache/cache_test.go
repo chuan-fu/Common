@@ -6,9 +6,8 @@ import (
 	"time"
 
 	"github.com/chuan-fu/Common/cdao"
-
 	"github.com/chuan-fu/Common/db/redis"
-	log "github.com/chuan-fu/Common/zlog"
+	"github.com/chuan-fu/Common/zlog"
 )
 
 type AA struct {

@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
-	log "github.com/chuan-fu/Common/zlog"
-
 	dbRedis "github.com/chuan-fu/Common/db/redis"
 	"github.com/chuan-fu/Common/util"
+	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
 )
