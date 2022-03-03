@@ -79,7 +79,7 @@ func (b *baseRedisOp) SetNX(ctx context.Context, value string) error {
 // 如果不存在，data为空字符串，不报错
 func (b *baseRedisOp) Get(ctx context.Context) (string, error) {
 	data, err := b.redisCli.Get(ctx, b.key).Result()
-	if err != nil && !errors.Is(err, redis.Nil) {
+	if err != nil && !IsRedisNil(err) {
 		return "", errors.Wrap(err, "BaseRedisOp Get")
 	}
 	if data != "" {
@@ -91,7 +91,7 @@ func (b *baseRedisOp) Get(ctx context.Context) (string, error) {
 // v应为指针
 func (b *baseRedisOp) GetResult(ctx context.Context, v interface{}) error {
 	data, err := b.redisCli.Get(ctx, b.key).Result()
-	if err != nil && !errors.Is(err, redis.Nil) {
+	if err != nil && !IsRedisNil(err) {
 		return errors.Wrap(err, "BaseRedisOp GetResult")
 	}
 	if data == "" {
@@ -103,8 +103,12 @@ func (b *baseRedisOp) GetResult(ctx context.Context, v interface{}) error {
 
 func (b *baseRedisOp) Del(ctx context.Context) error {
 	_, err := b.redisCli.Del(ctx, b.key).Result()
-	if err != nil && !errors.Is(err, redis.Nil) {
+	if err != nil && !IsRedisNil(err) {
 		return errors.Wrap(err, "BaseRedisOp Del")
 	}
 	return nil
+}
+
+func IsRedisNil(err error) bool {
+	return errors.Is(err, redis.Nil)
 }

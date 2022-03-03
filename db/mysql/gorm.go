@@ -93,6 +93,7 @@ func connectGORM(conf MysqlConf) error {
 		log.Error(err)
 		return err
 	}
+	log.Info("mysql ping result:", err)
 
 	gormDb = baseDB
 	if conf.Debug {

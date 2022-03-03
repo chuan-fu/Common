@@ -2,6 +2,7 @@ package cdao
 
 import (
 	"github.com/chuan-fu/Common/zlog"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -47,7 +48,7 @@ func Update(db *gorm.DB, tableName string, conditions map[string]interface{}, up
 // id为主键
 func FindById(db *gorm.DB, id int64, model interface{}) (err error) {
 	err = db.First(model, id).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil && !IsNoRecord(err) {
 		log.Error(err)
 		return
 	}
@@ -69,4 +70,8 @@ func Delete(db *gorm.DB, model interface{}) (err error) {
 		log.Error(err)
 	}
 	return
+}
+
+func IsNoRecord(err error) bool {
+	return errors.Is(err, gorm.ErrRecordNotFound)
 }
