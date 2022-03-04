@@ -26,6 +26,7 @@ type BaseRedisOp interface {
 	Del(ctx context.Context) error
 
 	SetLock(ctx context.Context) (value string, ok bool, err error)
+	ExtendLock(ctx context.Context, value string) (int64, error)
 	DelLock(ctx context.Context, value string) (int64, error)
 
 	PFAdd(ctx context.Context, els ...interface{}) error
@@ -44,15 +45,30 @@ if v2 then
 end
 return 0
 */
+
+/* extendLockScript
+local v2 = redis.call("get", KEYS[1])
+if v2 then
+	if v2 == ARGV[1] then
+		redis.call("pexpire", KEYS[1], ARGV[2])
+		return 1
+	end
+	return -1
+else
+	redis.call("set", KEYS[1], ARGV[1], "px", ARGV[2])
+	return 1
+end
+*/
 const (
+	extendLockScript     = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("pexpire", KEYS[1], ARGV[2]) return 1 end return -1 else redis.call("set", KEYS[1], ARGV[1], "px", ARGV[2]) return 1 end`
 	delLockScript        = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("del", KEYS[1]) return 1 end return 0 end return -1`
-	DelLockStatusNotOwn  = -1 // 非本人的锁【锁已过期，且已被锁定】
+	DelLockStatusNotOwn  = -1 // 非本人的锁【锁已过期，且已被抢占】
 	DelLockStatusExpired = 0  // 锁已过期
 	DelLockStatusSuccess = 1  // 删除成功
 )
 
 var (
-	DelLockStatusNotOwnErr  = errors.Wrap(errors.New("锁已过期，且已被锁定"), "BaseRedisOp DelLock")
+	DelLockStatusNotOwnErr  = errors.Wrap(errors.New("锁已过期，且已被抢占"), "BaseRedisOp DelLock")
 	DelLockStatusExpiredErr = errors.Wrap(errors.New("锁已过期"), "BaseRedisOp DelLock")
 )
 
@@ -158,6 +174,21 @@ func (b *baseRedisOp) SetLock(ctx context.Context) (value string, ok bool, err e
 	return
 }
 
+// 分布式锁 延长锁
+func (b *baseRedisOp) ExtendLock(ctx context.Context, value string) (int64, error) {
+	resI, err := b.redisCli.Eval(ctx, extendLockScript, []string{b.key}, value, formatMs(b.ttl)).Result()
+	if err != nil {
+		err = errors.Wrap(err, "BaseRedisOp DelLock")
+		return 0, err
+	}
+
+	res, _ := resI.(int64)
+	if res == DelLockStatusNotOwn {
+		return res, DelLockStatusNotOwnErr
+	}
+	return res, nil
+}
+
 // 分布式锁 写入
 // value为uuid，ok为是否写入成功
 func (b *baseRedisOp) DelLock(ctx context.Context, value string) (int64, error) {
@@ -209,4 +240,11 @@ func (b *baseRedisOp) PFMerge(ctx context.Context, keys ...string) error {
 
 func IsRedisNil(err error) bool {
 	return errors.Is(err, redis.Nil)
+}
+
+func formatMs(dur time.Duration) int64 {
+	if dur > 0 && dur < time.Millisecond {
+		return 1
+	}
+	return int64(dur / time.Millisecond)
 }
