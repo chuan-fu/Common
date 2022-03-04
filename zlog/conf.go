@@ -9,7 +9,7 @@ type Config struct {
 
 log:
 	sysName: Common
-	logLevel: info
+	logLevel: trace
 	encoding: json
 	noColor: true
 

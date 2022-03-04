@@ -13,6 +13,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+/*
+func defaultGetByDB(db *gorm.DB, id int64) GetByDBFunc {
+	return func(model interface{}) (data string, err error) {
+		err = cdao.FindById(db, id, model)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		return "", nil
+	}
+}
+*/
+
 type (
 	GetByCacheFunc func(b cdao.BaseRedisOp) (string, error)
 	SetCacheFunc   func(b cdao.BaseRedisOp, v string) error

@@ -11,14 +11,20 @@ const (
 	sysNameKey        = "sysname"
 	stackKey          = "stack"
 	defaultTimeFormat = "2006-01-02 15:04:05"
+	defaultSysName    = "Common"
+
+	defaultCallerName  = "gofile"
+	defaultMessageName = "msg"
 )
 
 var zlogger *logger
 
 func init() {
 	ReloadLogger(ZlogConf{
-		SysName:  "Common",
+		SysName:  defaultSysName,
 		LogLevel: zerolog.LevelTraceValue,
+		Encoding: EncodingJson,
+		NoColor:  true,
 	})
 }
 
@@ -28,8 +34,8 @@ func ReloadLogger(conf ZlogConf, ws ...io.Writer) {
 
 func NewLogger(conf ZlogConf, ws ...io.Writer) *logger {
 	zerolog.SetGlobalLevel(conf.getLevel()) // 修改日志等级
-	zerolog.CallerFieldName = "gofile"
-	zerolog.MessageFieldName = "msg"
+	zerolog.CallerFieldName = defaultCallerName
+	zerolog.MessageFieldName = defaultMessageName
 	zerolog.TimeFieldFormat = defaultTimeFormat
 	l := &logger{
 		log: newEncodingLogger(&conf, ws...).With().Str(sysNameKey, conf.SysName).Timestamp().CallerWithSkipFrameCount(skipFrameCount).Logger().
