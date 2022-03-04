@@ -36,7 +36,7 @@ type (
 
 type BaseStringCache struct {
 	Op    cdao.BaseRedisOp
-	Model interface{} // 应为指针
+	Model interface{} // 应为指针结构体【GetByDB应反序列化到结构体中】、或为空【GetByDB的data不得为空】
 
 	GetByCache GetByCacheFunc
 	GetByDB    GetByDBFunc
@@ -50,8 +50,10 @@ func (b *BaseStringCache) init() error {
 	if b.Op == nil {
 		return errors.New("BaseRedisOp is nil")
 	}
-	if reflect.TypeOf(b.Model).Kind() != reflect.Ptr {
-		return errors.New("Model is not ptr")
+	if b.Model != nil {
+		if reflect.TypeOf(b.Model).Kind() != reflect.Ptr {
+			return errors.New("Model is not ptr")
+		}
 	}
 
 	if b.GetByDB == nil {
@@ -82,6 +84,9 @@ func (b *BaseStringCache) Get() (data string, err error) {
 		log.Error(errors.Wrap(err, "GetByCache"))
 	}
 	if data != "" {
+		if b.Model == nil { // 无需解析
+			return
+		}
 		err = json.Unmarshal(util.StringToBytes(data), b.Model)
 		if err == nil {
 			return
@@ -101,6 +106,9 @@ func (b *BaseStringCache) Get() (data string, err error) {
 	}
 
 	if data == "" {
+		if b.Model == nil {
+			return "", errors.New("Model、data均为空，缓存获取有误")
+		}
 		dataByte, _ := json.Marshal(b.Model)
 		data = util.BytesToString(dataByte)
 	}

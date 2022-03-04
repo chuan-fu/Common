@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chuan-fu/Common/util"
+
 	"github.com/chuan-fu/Common/cdao"
 	"github.com/chuan-fu/Common/db/redis"
 	"github.com/chuan-fu/Common/zlog"
@@ -26,7 +28,7 @@ func init() {
 	}
 }
 
-func TestCache(t *testing.T) {
+func TestModelCache(t *testing.T) {
 	b := BaseStringCache{
 		Op:    cdao.NewBaseRedisOpWithKT("test:A:1", time.Minute),
 		Model: &AA{},
@@ -38,5 +40,19 @@ func TestCache(t *testing.T) {
 
 	data, err := b.Get()
 	fmt.Println(data, err)
+	fmt.Printf("%+v", b.Model)
+}
+
+func TestStrCache(t *testing.T) {
+	b := BaseStringCache{
+		Op: cdao.NewBaseRedisOpWithKT("test:A:2", time.Minute),
+		GetByDB: func(model interface{}) (string, error) {
+			log.Info("getByDB")
+			return `234`, nil
+		},
+	}
+
+	data, err := b.Get()
+	fmt.Println(data, err, util.Type(data))
 	fmt.Printf("%+v", b.Model)
 }
