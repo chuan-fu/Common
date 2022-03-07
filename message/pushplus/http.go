@@ -4,18 +4,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
+	"github.com/chuan-fu/Common/util"
 	"github.com/pkg/errors"
-	"gopkg.in/resty.v1"
 )
 
 // post post请求
 func post(ctx context.Context, data *Message) error {
 	var res Result
 
-	client := resty.New().SetTimeout(5 * time.Second)
-	resp, err := client.R().
+	resp, err := util.Client().R().
 		SetHeader("content-type", "application/json;charset=UTF-8").
 		SetContext(ctx).
 		SetBody(data).

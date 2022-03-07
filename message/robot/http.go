@@ -3,10 +3,9 @@ package robot
 import (
 	"context"
 	"fmt"
-	"time"
 
+	"github.com/chuan-fu/Common/util"
 	"github.com/pkg/errors"
-	"gopkg.in/resty.v1"
 )
 
 // post post请求
@@ -15,8 +14,7 @@ func post(ctx context.Context, key string, data Message) error {
 
 	var res RobotResponse
 
-	client := resty.New().SetTimeout(10 * time.Second)
-	resp, err := client.R().
+	resp, err := util.Client().R().
 		SetHeader("content-type", "application/json;charset=UTF-8").
 		SetContext(ctx).
 		SetBody(data).
