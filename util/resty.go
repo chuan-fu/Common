@@ -11,7 +11,7 @@ var client *resty.Client
 
 func init() {
 	client = resty.New()
-	client.SetTimeout(10 * time.Second)
+	client.SetTimeout(5 * time.Second)
 	client.SetRetryCount(3)
 	client.SetRetryWaitTime(time.Second)
 	client.AddRetryCondition(func(resp *resty.Response) (isRetry bool, err error) {
