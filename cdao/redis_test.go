@@ -55,3 +55,13 @@ func TestGetModel(t *testing.T) {
 	fmt.Println(string(a.C))
 	fmt.Printf("%+v", *a)
 }
+
+func TestTTL(t *testing.T) {
+	ttl, err := NewBaseRedisOpWithKT("GetModel", time.Minute).TTL(context.TODO())
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	fmt.Println(ttl)
+}

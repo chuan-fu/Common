@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
 
 	"github.com/chuan-fu/Common/cdao"
 	"github.com/chuan-fu/Common/util"
@@ -26,28 +25,25 @@ func defaultGetByDB(db *gorm.DB, id int64) GetByDBFunc {
 */
 
 type (
-	GetByCacheFunc func(ctx context.Context, b cdao.BaseRedisOp) (string, error)
-	SetCacheFunc   func(ctx context.Context, b cdao.BaseRedisOp, v string) error
-	DelCacheFunc   func(ctx context.Context, b cdao.BaseRedisOp) error
-	GetByDBFunc    func(ctx context.Context, model interface{}) (string, error)
+	GetStringByCacheFunc func(ctx context.Context, b cdao.BaseRedisOp) (string, error)
+	SetStringCacheFunc   func(ctx context.Context, b cdao.BaseRedisOp, v string) error
+	GetStringByDBFunc    func(ctx context.Context, model interface{}) (string, error)
 
-	BaseCacheOption func(*BaseStringCacheOptions)
+	BaseStringCacheOption func(*BaseStringCacheOptions)
 )
 
-func GetBaseStringCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetByDBFunc, opts ...BaseCacheOption) (data string, err error) {
+func GetBaseStringCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetStringByDBFunc, opts ...BaseStringCacheOption) (data string, err error) {
 	b := &BaseStringCacheOptions{
-		GetByCache: defaultGetByCache,
-		SetCache:   defaultSetCache,
+		GetByCache: defaultGetStringByCache,
+		SetCache:   defaultSetStringCache,
 		DelCache:   defaultDelCache,
 	}
 	for _, opt := range opts {
 		opt(b)
 	}
-	if b.Model != nil {
-		if reflect.TypeOf(b.Model).Kind() != reflect.Ptr {
-			err = errors.New("Model is not ptr")
-			return
-		}
+	if b.Model != nil && !util.IsPtrStruct(b.Model) {
+		err = errors.New("Model需要为空 或者 结构体指针")
+		return
 	}
 
 	data, err = b.GetByCache(ctx, op)
@@ -86,51 +82,47 @@ func GetBaseStringCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetByD
 	err = b.SetCache(ctx, op, data) // 写入cache
 	if err != nil {
 		log.Error(errors.Wrap(err, "SetCache"))
-		return
+		return data, nil
 	}
 	return
 }
 
-func defaultGetByCache(ctx context.Context, b cdao.BaseRedisOp) (string, error) {
+func defaultGetStringByCache(ctx context.Context, b cdao.BaseRedisOp) (string, error) {
 	return b.Get(ctx)
 }
 
-func defaultSetCache(ctx context.Context, b cdao.BaseRedisOp, v string) error {
+func defaultSetStringCache(ctx context.Context, b cdao.BaseRedisOp, v string) error {
 	return b.Set(ctx, v)
-}
-
-func defaultDelCache(ctx context.Context, b cdao.BaseRedisOp) error {
-	return b.Del(ctx)
 }
 
 type BaseStringCacheOptions struct {
 	Model interface{}
 
-	GetByCache GetByCacheFunc
-	SetCache   SetCacheFunc
+	GetByCache GetStringByCacheFunc
+	SetCache   SetStringCacheFunc
 	DelCache   DelCacheFunc
 }
 
-func WithGetByCache(fn GetByCacheFunc) BaseCacheOption {
+func WithGetStringByCache(fn GetStringByCacheFunc) BaseStringCacheOption {
 	return func(opts *BaseStringCacheOptions) {
 		opts.GetByCache = fn
 	}
 }
 
-func WithSetCache(fn SetCacheFunc) BaseCacheOption {
+func WithSetStringCache(fn SetStringCacheFunc) BaseStringCacheOption {
 	return func(opts *BaseStringCacheOptions) {
 		opts.SetCache = fn
 	}
 }
 
-func WithDelCache(fn DelCacheFunc) BaseCacheOption {
+func WithDelStringCache(fn DelCacheFunc) BaseStringCacheOption {
 	return func(opts *BaseStringCacheOptions) {
 		opts.DelCache = fn
 	}
 }
 
 // model需要为指针，或为空
-func WithSetModel(m interface{}) BaseCacheOption {
+func WithSetModel(m interface{}) BaseStringCacheOption {
 	return func(opts *BaseStringCacheOptions) {
 		opts.Model = m
 	}

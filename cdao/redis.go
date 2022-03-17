@@ -31,7 +31,9 @@ type BaseRedisOp interface {
 	GetResult(ctx context.Context, v interface{}) error
 
 	// common
+	Exists(ctx context.Context) (bool, error)
 	Expire(ctx context.Context) (bool, error)
+	TTL(ctx context.Context) (time.Duration, error)
 	Del(ctx context.Context) error
 
 	// 分布式锁
@@ -185,12 +187,28 @@ func (b *baseRedisOp) GetResult(ctx context.Context, v interface{}) error {
 	return json.Unmarshal(util.StringToBytes(data), v)
 }
 
+func (b *baseRedisOp) Exists(ctx context.Context) (bool, error) {
+	i, err := b.redisCli.Exists(ctx, b.key).Result()
+	if err != nil && !IsRedisNil(err) {
+		return false, errors.Wrap(err, "BaseRedisOp Expire")
+	}
+	return i == 1, nil
+}
+
 func (b *baseRedisOp) Expire(ctx context.Context) (bool, error) {
 	ok, err := b.redisCli.Expire(ctx, b.key, b.ttl).Result()
 	if err != nil && !IsRedisNil(err) {
 		return false, errors.Wrap(err, "BaseRedisOp Expire")
 	}
 	return ok, nil
+}
+
+func (b *baseRedisOp) TTL(ctx context.Context) (time.Duration, error) {
+	t, err := b.redisCli.TTL(ctx, b.key).Result()
+	if err != nil && !IsRedisNil(err) {
+		return 0, errors.Wrap(err, "BaseRedisOp Expire")
+	}
+	return t, nil
 }
 
 func (b *baseRedisOp) Del(ctx context.Context) error {
@@ -289,25 +307,26 @@ func (b *baseRedisOp) SetModel(ctx context.Context, model interface{}) error {
 	for i := 0; i < rt.NumField(); i++ {
 		args = append(args, getTag(rt, i, b.tag), rv.Field(i).Interface())
 	}
-	_, err := b.redisCli.HMSet(ctx, b.key, args...).Result()
-	if err != nil {
+
+	if _, err := b.redisCli.HMSet(ctx, b.key, args...).Result(); err != nil {
 		return errors.Wrap(err, "BaseRedisOp SetModel HMSet")
 	}
-	_, err = b.redisCli.Expire(ctx, b.key, b.ttl).Result()
-	if err != nil {
-		return errors.Wrap(err, "BaseRedisOp SetModel Expire")
+
+	if b.ttl > 0 {
+		if _, err := b.redisCli.Expire(ctx, b.key, b.ttl).Result(); err != nil {
+			return errors.Wrap(err, "BaseRedisOp SetModel Expire")
+		}
 	}
 	return nil
 }
 
 // hash读取
 func (b *baseRedisOp) GetModel(ctx context.Context, model interface{}) error {
-	rt := reflect.TypeOf(model)
-	if !(rt.Kind() == reflect.Ptr && rt.Elem().Kind() == reflect.Struct) {
+	if !util.IsPtrStruct(model) {
 		return errors.New("传入的model要为结构体指针")
 	}
 
-	rt = rt.Elem()
+	rt := reflect.TypeOf(model).Elem()
 	args := make([]string, rt.NumField())
 	for i := 0; i < rt.NumField(); i++ {
 		args[i] = getTag(rt, i, b.tag)
