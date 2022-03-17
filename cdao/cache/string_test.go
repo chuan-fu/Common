@@ -1,14 +1,15 @@
 package cache
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/chuan-fu/Common/util"
-
 	"github.com/chuan-fu/Common/cdao"
 	"github.com/chuan-fu/Common/db/redis"
+	"github.com/chuan-fu/Common/util"
 	"github.com/chuan-fu/Common/zlog"
 )
 
@@ -29,30 +30,31 @@ func init() {
 }
 
 func TestModelCache(t *testing.T) {
-	b := BaseStringCache{
-		Op:    cdao.NewBaseRedisOpWithKT("test:A:1", time.Minute),
-		Model: &AA{},
-		GetByDB: func(model interface{}) (string, error) {
-			log.Info("getByDB")
-			return `{"id":1}`, nil
-		},
-	}
+	op := cdao.NewBaseRedisOpWithKT("test:A:1", time.Minute)
+	m := &AA{}
 
-	data, err := b.Get()
+	data, err := GetBaseStringCache(context.TODO(), op,
+		func(ctx context.Context, model interface{}) (data string, err error) {
+			log.Info("getByDB")
+			err = json.Unmarshal([]byte(`{"id":1}`), model)
+			if err != nil {
+				log.Error(err)
+			}
+			return
+		},
+		WithSetModel(m),
+	)
 	fmt.Println(data, err)
-	fmt.Printf("%+v", b.Model)
+	fmt.Printf("%+v", m)
 }
 
 func TestStrCache(t *testing.T) {
-	b := BaseStringCache{
-		Op: cdao.NewBaseRedisOpWithKT("test:A:2", time.Minute),
-		GetByDB: func(model interface{}) (string, error) {
+	op := cdao.NewBaseRedisOpWithKT("test:A:2", time.Minute)
+	data, err := GetBaseStringCache(context.TODO(), op,
+		func(ctx context.Context, model interface{}) (string, error) {
 			log.Info("getByDB")
 			return `234`, nil
 		},
-	}
-
-	data, err := b.Get()
+	)
 	fmt.Println(data, err, util.Type(data))
-	fmt.Printf("%+v", b.Model)
 }
