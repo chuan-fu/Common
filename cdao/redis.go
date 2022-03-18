@@ -328,15 +328,15 @@ func (b *baseRedisOp) HSetModel(ctx context.Context, model interface{}) error {
 
 	args := make([]interface{}, 0, 2*rt.NumField())
 	for i := 0; i < rt.NumField(); i++ {
-		args = append(args, getTag(rt, i, b.tag), rv.Field(i).Interface())
+		args = append(args, getTag(rt, i, b.tag), util.ToString(rv.Field(i).Interface()))
 	}
 
 	if _, err := b.redisCli.HMSet(ctx, b.key, args...).Result(); err != nil {
-		return errors.Wrap(err, "BaseRedisOp SetModel HMSet")
+		return errors.Wrap(err, "BaseRedisOp HSetModel HMSet")
 	}
 	if b.ttl > 0 {
 		if _, err := b.redisCli.Expire(ctx, b.key, b.ttl).Result(); err != nil {
-			return errors.Wrap(err, "BaseRedisOp SetModel Expire")
+			return errors.Wrap(err, "BaseRedisOp HSetModel Expire")
 		}
 	}
 	return nil
@@ -355,7 +355,7 @@ func (b *baseRedisOp) HGetModel(ctx context.Context, model interface{}) error {
 	}
 	values, err := b.redisCli.HMGet(ctx, b.key, args...).Result()
 	if err != nil {
-		return errors.Wrap(err, "BaseRedisOp GetModel HMSet")
+		return errors.Wrap(err, "BaseRedisOp HGetModel HMSet")
 	}
 
 	rv := reflect.ValueOf(model).Elem()
@@ -378,11 +378,11 @@ func (b *baseRedisOp) HSetMap(ctx context.Context, m map[string]interface{}) err
 		args = append(args, k, util.ToString(v))
 	}
 	if _, err := b.redisCli.HMSet(ctx, b.key, args...).Result(); err != nil {
-		return errors.Wrap(err, "BaseRedisOp SetMap HMSet")
+		return errors.Wrap(err, "BaseRedisOp HSetMap HMSet")
 	}
 	if b.ttl > 0 {
 		if _, err := b.redisCli.Expire(ctx, b.key, b.ttl).Result(); err != nil {
-			return errors.Wrap(err, "BaseRedisOp SetMap Expire")
+			return errors.Wrap(err, "BaseRedisOp HSetMap Expire")
 		}
 	}
 	return nil
@@ -396,7 +396,7 @@ func (b *baseRedisOp) HGetMap(ctx context.Context, m map[string]string) error {
 	}
 	values, err := b.redisCli.HMGet(ctx, b.key, args...).Result()
 	if err != nil {
-		return errors.Wrap(err, "BaseRedisOp GetMap HMSet")
+		return errors.Wrap(err, "BaseRedisOp HGetMap HMSet")
 	}
 	for k := range args {
 		if values[k] != nil {

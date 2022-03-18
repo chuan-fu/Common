@@ -20,10 +20,11 @@ func init() {
 }
 
 type AA struct {
-	A int64  `json:"a"`
-	B string `json:"b"`
-	C []byte `json:"c"`
-	D bool   `json:"d"`
+	A int64                  `json:"a"`
+	B string                 `json:"b"`
+	C []byte                 `json:"c"`
+	D bool                   `json:"d"`
+	E map[string]interface{} `json:"e"`
 }
 
 func TestCache(t *testing.T) {
@@ -106,4 +107,20 @@ func TestHGetAll(t *testing.T) {
 		return
 	}
 	fmt.Println(m)
+}
+
+func TestHSetModel(t *testing.T) {
+	err := NewBaseRedisOpWithKT("HSetModel", time.Minute).HSetModel(context.TODO(), AA{
+		A: 0,
+		B: "",
+		C: nil,
+		D: false,
+		E: map[string]interface{}{
+			"E1": "1",
+		},
+	})
+	if err != nil {
+		log.Error(err)
+		return
+	}
 }
