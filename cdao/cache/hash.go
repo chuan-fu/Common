@@ -72,11 +72,11 @@ func GetBaseHashCache(ctx context.Context, op cdao.BaseRedisOp, model interface{
 }
 
 func defaultGetHashByCache(ctx context.Context, b cdao.BaseRedisOp, model interface{}) error {
-	return b.GetModel(ctx, model)
+	return b.HGetModel(ctx, model)
 }
 
 func defaultSetHashCache(ctx context.Context, b cdao.BaseRedisOp, model interface{}) error {
-	return b.SetModel(ctx, model)
+	return b.HSetModel(ctx, model)
 }
 
 type BaseHashCacheOptions struct {

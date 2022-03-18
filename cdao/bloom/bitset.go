@@ -3,26 +3,31 @@ package bloom
 import (
 	"context"
 	"errors"
-	"strconv"
+	"fmt"
 
 	"github.com/go-redis/redis/v8"
 )
 
-const (
-	setScript = `
-for _, offset in ipairs(ARGV) do 
-	redis.call("setbit", KEYS[1], offset, 1) 
-end `
-	checkScript = `
+/* setScript
 for _, offset in ipairs(ARGV) do
-	if tonumber(redis.call("getbit", KEYS[1], offset)) == 0 then 
-		return -1 
-	end 
-end 
-return 1 `
+	redis.call("setbit", KEYS[1], offset, 1)
+end
+*/
 
-	isNotExist = -1 // 不存在
-	isExist    = 1  // 存在
+/* checkScript
+for _, offset in ipairs(ARGV) do
+	if tonumber(redis.call("getbit", KEYS[1], offset)) == 0 then
+		return 0
+	end
+end
+return 1
+*/
+
+const (
+	setScript   = `for _, offset in ipairs(ARGV) do redis.call("setbit", KEYS[1], offset, 1) end`
+	checkScript = `for _, offset in ipairs(ARGV) do if tonumber(redis.call("getbit", KEYS[1], offset)) == 0 then return 0 end end return 1`
+
+	isExist = 1 // 存在
 )
 
 var (
@@ -51,11 +56,11 @@ func newRedisBitSet(rCli redis.Cmdable, key string, bits uint) *redisBitSet {
 
 func (r *redisBitSet) buildOffsetArgs(offsets []uint) ([]string, error) {
 	args := make([]string, len(offsets))
-	for k, offset := range offsets {
-		if offset >= r.bits {
+	for k := range offsets {
+		if offsets[k] >= r.bits {
 			return nil, ErrTooLargeOffset
 		}
-		args[k] = strconv.FormatUint(uint64(offset), 10)
+		args[k] = fmt.Sprintf("%d", offsets[k])
 	}
 	return args, nil
 }

@@ -2,9 +2,12 @@ package cdao
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/chuan-fu/Common/util"
 )
@@ -30,12 +33,13 @@ func formatMs(dur time.Duration) int64 {
 }
 
 const (
-	BitSize0  = 0
-	BitSize8  = 8
-	BitSize10 = 10
-	BitSize16 = 16
-	BitSize32 = 32
-	BitSize64 = 64
+	BitSize0   = 0
+	BitSize8   = 8
+	BitSize10  = 10
+	BitSize16  = 16
+	BitSize32  = 32
+	BitSize64  = 64
+	BitSize128 = 128
 )
 
 func setReflectValueByStr(value reflect.Value, val string) error {
@@ -69,6 +73,10 @@ func setReflectValueByStr(value reflect.Value, val string) error {
 		return setFloatField(val, BitSize32, value)
 	case reflect.Float64:
 		return setFloatField(val, BitSize64, value)
+	case reflect.Complex64:
+		return setComplexField(val, BitSize64, value)
+	case reflect.Complex128:
+		return setComplexField(val, BitSize128, value)
 	case reflect.String:
 		value.SetString(val)
 	case reflect.Struct:
@@ -83,13 +91,15 @@ func setReflectValueByStr(value reflect.Value, val string) error {
 			return setByteSlice(val, value)
 		}
 		return json.Unmarshal(util.StringToBytes(val), value.Addr().Interface())
+	default:
+		return errors.New(fmt.Sprintf("setReflectValueByStr 不可转换类型:%d", value.Kind()))
 	}
 	return nil
 }
 
 func setIntField(val string, bitSize int, field reflect.Value) (err error) {
 	var intVal int64
-	if intVal, err = strconv.ParseInt(val, 10, bitSize); err != nil {
+	if intVal, err = strconv.ParseInt(val, BitSize10, bitSize); err != nil {
 		return
 	}
 	field.SetInt(intVal)
@@ -120,6 +130,15 @@ func setFloatField(val string, bitSize int, field reflect.Value) (err error) {
 		return
 	}
 	field.SetFloat(floatVal)
+	return
+}
+
+func setComplexField(val string, bitSize int, field reflect.Value) (err error) {
+	var floatVal complex128
+	if floatVal, err = strconv.ParseComplex(val, bitSize); err != nil {
+		return
+	}
+	field.SetComplex(floatVal)
 	return
 }
 

@@ -1,7 +1,9 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 )
 
@@ -23,14 +25,14 @@ func ToFloat(s string) (float64, error) {
 }
 
 func ToString(v interface{}) string {
-	switch vt := v.(type) {
-	case int:
-		return strconv.Itoa(vt)
-	case int64:
-		return strconv.FormatInt(vt, Int64Base)
-	case string:
-		return vt
+	rv := reflect.ValueOf(v)
+	switch rv.Kind() {
+	case reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
+		d, _ := json.Marshal(v)
+		return BytesToString(d)
+	case reflect.String:
+		return rv.String()
 	default:
-		return fmt.Sprintf("%v", v)
+		return fmt.Sprintf("%v", rv.Interface())
 	}
 }

@@ -20,11 +20,10 @@ func init() {
 }
 
 type AA struct {
-	A   int64  `json:"a"`
-	AAA int64  `json:"a"`
-	B   string `json:"b"`
-	C   []byte `json:"c"`
-	D   bool   `json:"d"`
+	A int64  `json:"a"`
+	B string `json:"b"`
+	C []byte `json:"c"`
+	D bool   `json:"d"`
 }
 
 func TestCache(t *testing.T) {
@@ -37,7 +36,7 @@ func TestCache(t *testing.T) {
 
 func TestSetModel(t *testing.T) {
 	b := NewBaseRedisOpWithKT("GetModel", time.Hour).SetTag("json")
-	err := b.SetModel(context.TODO(), &AA{
+	err := b.HSetModel(context.TODO(), &AA{
 		A: 1,
 		B: "啊",
 		C: []byte{'a', 'v'},
@@ -50,7 +49,7 @@ func TestSetModel(t *testing.T) {
 func TestGetModel(t *testing.T) {
 	b := NewBaseRedisOpWithKT("GetModel", time.Minute).SetTag("json")
 	a := &AA{}
-	err := b.GetModel(context.TODO(), a)
+	err := b.HGetModel(context.TODO(), a)
 	fmt.Println(err)
 	fmt.Println(string(a.C))
 	fmt.Printf("%+v", *a)
@@ -81,4 +80,30 @@ func TestZRangeString(t *testing.T) {
 		return
 	}
 	fmt.Println(data)
+}
+
+func TestHSetMap(t *testing.T) {
+	m := map[string]interface{}{
+		"A": []string{"1a", "2b"},
+		"B": map[string]string{"3c": "3c-1", "4d": "4d-2"},
+		"C": AA{A: 1, B: "2", C: []byte{'a', 'v'}, D: true},
+		"D": 1,
+		"E": 1.2,
+		"F": "F11",
+	}
+	err := NewBaseRedisOpWithKT("HSetMap", time.Hour).HSetMap(context.TODO(), m)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	fmt.Println(m)
+}
+
+func TestHGetAll(t *testing.T) {
+	m, err := NewBaseRedisOpWithKT("HSetMap2", time.Minute).HGetAll(context.TODO())
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	fmt.Println(m)
 }

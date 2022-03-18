@@ -46,8 +46,12 @@ type BaseRedisOp interface {
 	PFMerge(ctx context.Context, keys ...string) error
 
 	// hash
-	SetModel(ctx context.Context, model interface{}) error
-	GetModel(ctx context.Context, model interface{}) error
+	HSetModel(ctx context.Context, model interface{}) error
+	HGetModel(ctx context.Context, model interface{}) error
+	HSetMap(ctx context.Context, m map[string]interface{}) error
+	HGetMap(ctx context.Context, m map[string]string) error
+	HGet(ctx context.Context, key string) (val string, err error)
+	HGetAll(ctx context.Context) (map[string]string, error)
 
 	// zset
 	ZAddString(ctx context.Context, list []string) error
@@ -108,8 +112,8 @@ const (
 )
 
 var (
-	DelLockStatusNotOwnErr  = errors.Wrap(errors.New("锁已过期，且已被抢占"), "BaseRedisOp DelLock")
-	DelLockStatusExpiredErr = errors.Wrap(errors.New("锁已过期"), "BaseRedisOp DelLock")
+	DelLockStatusNotOwnErr  = errors.New("BaseRedisOp DelLock: 锁已过期，且已被抢占")
+	DelLockStatusExpiredErr = errors.New("BaseRedisOp DelLock: 锁已过期")
 )
 
 type baseRedisOp struct {
@@ -255,7 +259,6 @@ func (b *baseRedisOp) ExtendLock(ctx context.Context, value string) (int64, erro
 		err = errors.Wrap(err, "BaseRedisOp DelLock")
 		return 0, err
 	}
-
 	res, _ := resI.(int64)
 	if res == DelLockStatusNotOwn {
 		return res, DelLockStatusNotOwnErr
@@ -312,7 +315,7 @@ func (b *baseRedisOp) PFMerge(ctx context.Context, keys ...string) error {
 }
 
 // hash写入
-func (b *baseRedisOp) SetModel(ctx context.Context, model interface{}) error {
+func (b *baseRedisOp) HSetModel(ctx context.Context, model interface{}) error {
 	rt := reflect.TypeOf(model)
 	rv := reflect.ValueOf(model)
 	if rt.Kind() == reflect.Ptr {
@@ -340,7 +343,7 @@ func (b *baseRedisOp) SetModel(ctx context.Context, model interface{}) error {
 }
 
 // hash读取
-func (b *baseRedisOp) GetModel(ctx context.Context, model interface{}) error {
+func (b *baseRedisOp) HGetModel(ctx context.Context, model interface{}) error {
 	if !util.IsPtrStruct(model) {
 		return errors.New("传入的model要为结构体指针")
 	}
@@ -352,10 +355,7 @@ func (b *baseRedisOp) GetModel(ctx context.Context, model interface{}) error {
 	}
 	values, err := b.redisCli.HMGet(ctx, b.key, args...).Result()
 	if err != nil {
-		return errors.Wrap(err, "BaseRedisOp SetModel HMSet")
-	}
-	if len(values) < rt.NumField() {
-		return nil
+		return errors.Wrap(err, "BaseRedisOp GetModel HMSet")
 	}
 
 	rv := reflect.ValueOf(model).Elem()
@@ -369,6 +369,59 @@ func (b *baseRedisOp) GetModel(ctx context.Context, model interface{}) error {
 		}
 	}
 	return nil
+}
+
+// hash map写入
+func (b *baseRedisOp) HSetMap(ctx context.Context, m map[string]interface{}) error {
+	args := make([]interface{}, 0, 2*len(m))
+	for k, v := range m {
+		args = append(args, k, util.ToString(v))
+	}
+	if _, err := b.redisCli.HMSet(ctx, b.key, args...).Result(); err != nil {
+		return errors.Wrap(err, "BaseRedisOp SetMap HMSet")
+	}
+	if b.ttl > 0 {
+		if _, err := b.redisCli.Expire(ctx, b.key, b.ttl).Result(); err != nil {
+			return errors.Wrap(err, "BaseRedisOp SetMap Expire")
+		}
+	}
+	return nil
+}
+
+// hash map读取
+func (b *baseRedisOp) HGetMap(ctx context.Context, m map[string]string) error {
+	args := make([]string, 0, len(m))
+	for k := range m {
+		args = append(args, k)
+	}
+	values, err := b.redisCli.HMGet(ctx, b.key, args...).Result()
+	if err != nil {
+		return errors.Wrap(err, "BaseRedisOp GetMap HMSet")
+	}
+	for k := range args {
+		if values[k] != nil {
+			m[args[k]], _ = values[k].(string)
+		}
+	}
+	return nil
+}
+
+// hash map读取
+func (b *baseRedisOp) HGet(ctx context.Context, key string) (string, error) {
+	val, err := b.redisCli.HGet(ctx, b.key, key).Result()
+	if err != nil && !IsRedisNil(err) {
+		return "", errors.Wrap(err, "BaseRedisOp HGet")
+	}
+	return val, nil
+}
+
+// hash map读取
+func (b *baseRedisOp) HGetAll(ctx context.Context) (map[string]string, error) {
+	m, err := b.redisCli.HGetAll(ctx, b.key).Result()
+	if err != nil {
+		return nil, errors.Wrap(err, "BaseRedisOp HGetAll")
+	}
+	return m, nil
 }
 
 // 覆盖式写入，并设置ttl

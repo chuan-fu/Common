@@ -14,7 +14,7 @@ const (
 	constantA = 20
 )
 
-type BloomFilter struct {
+type Bloom struct {
 	bits   uint
 	bitSet BitSetProvider
 }
@@ -26,16 +26,16 @@ type BloomFilter struct {
 // when maps = 14, formula: 0.7*(bits/maps), bits = 20*elements, the error rate is 0.000067 < 1e-4
 // for detailed error rate table, see http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
 // elements为预计元素个数，真实元素数量超过预计，错误率会急剧上升
-func NewBloomFilter(store redis.Cmdable, key string, elements uint) *BloomFilter {
+func NewBloomFilter(store redis.Cmdable, key string, elements uint) *Bloom {
 	bits := elements * constantA
-	return &BloomFilter{
+	return &Bloom{
 		bits:   bits,
 		bitSet: newRedisBitSet(store, key, bits),
 	}
 }
 
 // 添加元素
-func (f *BloomFilter) Add(data []byte) error {
+func (f *Bloom) Add(data []byte) error {
 	locations := f.getLocations(data)
 	if err := f.bitSet.set(locations); err != nil {
 		return err
@@ -44,7 +44,7 @@ func (f *BloomFilter) Add(data []byte) error {
 }
 
 // 校验元素是否存在
-func (f *BloomFilter) Exists(data []byte) (bool, error) {
+func (f *Bloom) Exists(data []byte) (bool, error) {
 	locations := f.getLocations(data)
 	isSet, err := f.bitSet.check(locations)
 	if err != nil {
@@ -57,7 +57,7 @@ func (f *BloomFilter) Exists(data []byte) (bool, error) {
 	return true, nil
 }
 
-func (f *BloomFilter) getLocations(data []byte) []uint {
+func (f *Bloom) getLocations(data []byte) []uint {
 	locations := make([]uint, maps)
 	for i := uint(0); i < maps; i++ {
 		hashValue := hash(append(data, byte(i)))

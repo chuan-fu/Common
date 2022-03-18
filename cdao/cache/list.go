@@ -58,7 +58,7 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, pageIndex, pageS
 	if err == nil && has {
 		resp, err = b.GetByCache(ctx, op, pageIndex, pageSize) // 获取缓存，并返回
 		if err == nil {
-			return
+			return resp, nil
 		}
 		log.Error(errors.Wrap(err, "GetByCache"))
 	}
@@ -92,16 +92,12 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, pageIndex, pageS
 	stop := start + pageSize
 	total := int64(len(resp))
 	if start >= total {
-		resp = []string{}
-	} else {
-		if stop >= total {
-			resp = resp[start:]
-		} else {
-			resp = resp[start:stop]
-		}
+		return []string{}, nil
 	}
-
-	return
+	if stop >= total {
+		return resp[start:], nil
+	}
+	return resp[start:stop], nil
 }
 
 func toStringSlice(data interface{}) ([]string, error) {
