@@ -86,7 +86,7 @@ type BaseHashCacheOptions struct {
 	// DelCache    DelCacheFunc
 }
 
-func WithCheckExists(fn CheckExistsFunc) BaseHashCacheOption {
+func WithCheckHashExists(fn CheckExistsFunc) BaseHashCacheOption {
 	return func(opts *BaseHashCacheOptions) {
 		opts.CheckExists = fn
 	}
