@@ -65,3 +65,20 @@ func TestTTL(t *testing.T) {
 
 	fmt.Println(ttl)
 }
+
+func TestZAddString(t *testing.T) {
+	err := NewBaseRedisOp().SetKey("ZAdd").SetTTL(time.Hour).ZAddString(context.TODO(), []string{"A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12"})
+	if err != nil {
+		log.Error(err)
+		return
+	}
+}
+
+func TestZRangeString(t *testing.T) {
+	data, err := NewBaseRedisOp().SetKey("ZAdd").ZRangeString(context.TODO(), 1, 10)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	fmt.Println(data)
+}

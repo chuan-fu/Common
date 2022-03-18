@@ -17,7 +17,7 @@ func defaultCheckExists(ctx context.Context, b cdao.BaseRedisOp) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if t > time.Second {
+	if t > time.Second { // 默认情况下，如果剩余时间大于1s，下一次get数据可以取到
 		return true, nil
 	}
 	return false, nil

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"reflect"
-	"strconv"
 	"time"
 
 	dbRedis "github.com/chuan-fu/Common/db/redis"
@@ -49,6 +48,11 @@ type BaseRedisOp interface {
 	// hash
 	SetModel(ctx context.Context, model interface{}) error
 	GetModel(ctx context.Context, model interface{}) error
+
+	// zset
+	ZAddString(ctx context.Context, list []string) error
+	ZRangeString(ctx context.Context, start, stop int64) (data []string, err error)                 // 根据下标
+	ZRangeStringWithPage(ctx context.Context, pageIndex, pageSize int64) (data []string, err error) // 根据分页
 }
 
 /* delLockScript
@@ -76,12 +80,25 @@ else
 	return 1
 end
 */
+
+/* zaddScript 覆盖式写入
+if redis.call("exists", KEYS[1]) == 1 then
+	redis.call("del", KEYS[1])
+end
+redis.call("zadd", KEYS[1], unpack(ARGV))
+if KEYS[2] then
+	redis.call("expire", KEYS[1], KEYS[2])
+end
+return 1
+*/
 const (
 	extendLockScript     = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("pexpire", KEYS[1], ARGV[2]) return 1 end return -1 else redis.call("set", KEYS[1], ARGV[1], "px", ARGV[2]) return 1 end`
 	delLockScript        = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("del", KEYS[1]) return 1 end return 0 end return -1`
 	DelLockStatusNotOwn  = -1 // 非本人的锁【锁已过期，且已被抢占】
 	DelLockStatusExpired = 0  // 锁已过期
 	DelLockStatusSuccess = 1  // 删除成功
+
+	zaddScript = `if redis.call("exists", KEYS[1]) == 1 then redis.call("del", KEYS[1]) end redis.call("zadd", KEYS[1], unpack(ARGV)) if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
 )
 
 const (
@@ -302,6 +319,9 @@ func (b *baseRedisOp) SetModel(ctx context.Context, model interface{}) error {
 		rt = rt.Elem()
 		rv = rv.Elem()
 	}
+	if rt.Kind() != reflect.Struct {
+		return errors.New("传入的model要为结构体或结构体指针")
+	}
 
 	args := make([]interface{}, 0, 2*rt.NumField())
 	for i := 0; i < rt.NumField(); i++ {
@@ -311,7 +331,6 @@ func (b *baseRedisOp) SetModel(ctx context.Context, model interface{}) error {
 	if _, err := b.redisCli.HMSet(ctx, b.key, args...).Result(); err != nil {
 		return errors.Wrap(err, "BaseRedisOp SetModel HMSet")
 	}
-
 	if b.ttl > 0 {
 		if _, err := b.redisCli.Expire(ctx, b.key, b.ttl).Result(); err != nil {
 			return errors.Wrap(err, "BaseRedisOp SetModel Expire")
@@ -352,139 +371,48 @@ func (b *baseRedisOp) GetModel(ctx context.Context, model interface{}) error {
 	return nil
 }
 
+// 覆盖式写入，并设置ttl
+func (b *baseRedisOp) ZAddString(ctx context.Context, list []string) error {
+	if len(list) == 0 {
+		return nil
+	}
+
+	keys := []string{b.key}
+	if t := formatSec(b.ttl); t > 0 {
+		keys = append(keys, util.ToString(t))
+	}
+	args := make([]interface{}, 0, 2*len(list))
+	for k := range list {
+		args = append(args, k, list[k])
+	}
+	_, err := b.redisCli.Eval(ctx, zaddScript, keys, args...).Result()
+	if err != nil {
+		return errors.Wrap(err, "BaseRedisOp ZAdd")
+	}
+	return nil
+}
+
+// 获取列表数据
+func (b *baseRedisOp) ZRangeString(ctx context.Context, start, stop int64) (data []string, err error) {
+	data, err = b.redisCli.ZRange(ctx, b.key, start, stop).Result()
+	if err != nil {
+		err = errors.Wrap(err, "BaseRedisOp ZRange")
+	}
+	return
+}
+
+// 获取列表数据
+func (b *baseRedisOp) ZRangeStringWithPage(ctx context.Context, pageIndex, pageSize int64) (data []string, err error) {
+	start := (pageIndex - 1) * pageSize
+	end := start + pageSize - 1
+
+	data, err = b.redisCli.ZRange(ctx, b.key, start, end).Result()
+	if err != nil {
+		err = errors.Wrap(err, "BaseRedisOp ZRange")
+	}
+	return
+}
+
 func IsRedisNil(err error) bool {
 	return errors.Is(err, redis.Nil)
-}
-
-func formatMs(dur time.Duration) int64 {
-	if dur > 0 && dur < time.Millisecond {
-		return 1
-	}
-	return int64(dur / time.Millisecond)
-}
-
-const (
-	BitSize0  = 0
-	BitSize8  = 8
-	BitSize10 = 10
-	BitSize16 = 16
-	BitSize32 = 32
-	BitSize64 = 64
-)
-
-func setReflectValueByStr(value reflect.Value, val string) error {
-	switch value.Kind() {
-	case reflect.Int:
-		return setIntField(val, BitSize0, value)
-	case reflect.Int8:
-		return setIntField(val, BitSize8, value)
-	case reflect.Int16:
-		return setIntField(val, BitSize16, value)
-	case reflect.Int32:
-		return setIntField(val, BitSize32, value)
-	case reflect.Int64:
-		if _, ok := value.Interface().(time.Duration); ok {
-			return setTimeDuration(val, value)
-		}
-		return setIntField(val, BitSize64, value)
-	case reflect.Uint:
-		return setUintField(val, BitSize0, value)
-	case reflect.Uint8:
-		return setUintField(val, BitSize8, value)
-	case reflect.Uint16:
-		return setUintField(val, BitSize16, value)
-	case reflect.Uint32:
-		return setUintField(val, BitSize32, value)
-	case reflect.Uint64:
-		return setUintField(val, BitSize64, value)
-	case reflect.Bool:
-		return setBoolField(val, value)
-	case reflect.Float32:
-		return setFloatField(val, BitSize32, value)
-	case reflect.Float64:
-		return setFloatField(val, BitSize64, value)
-	case reflect.String:
-		value.SetString(val)
-	case reflect.Struct:
-		if _, ok := value.Interface().(time.Time); ok {
-			return setTimeField(val, value)
-		}
-		return json.Unmarshal(util.StringToBytes(val), value.Addr().Interface())
-	case reflect.Map, reflect.Array:
-		return json.Unmarshal(util.StringToBytes(val), value.Addr().Interface())
-	case reflect.Slice:
-		if _, ok := value.Interface().([]byte); ok {
-			return setByteSlice(val, value)
-		}
-		return json.Unmarshal(util.StringToBytes(val), value.Addr().Interface())
-	}
-	return nil
-}
-
-func setIntField(val string, bitSize int, field reflect.Value) (err error) {
-	var intVal int64
-	if intVal, err = strconv.ParseInt(val, 10, bitSize); err != nil {
-		return
-	}
-	field.SetInt(intVal)
-	return
-}
-
-func setUintField(val string, bitSize int, field reflect.Value) (err error) {
-	var intVal uint64
-	if intVal, err = strconv.ParseUint(val, BitSize10, bitSize); err != nil {
-		return
-	}
-	field.SetUint(intVal)
-	return
-}
-
-func setBoolField(val string, field reflect.Value) (err error) {
-	var boolVal bool
-	if boolVal, err = strconv.ParseBool(val); err != nil {
-		return
-	}
-	field.SetBool(boolVal)
-	return
-}
-
-func setFloatField(val string, bitSize int, field reflect.Value) (err error) {
-	var floatVal float64
-	if floatVal, err = strconv.ParseFloat(val, bitSize); err != nil {
-		return
-	}
-	field.SetFloat(floatVal)
-	return
-}
-
-func setTimeDuration(val string, value reflect.Value) error {
-	t, err := time.ParseDuration(val)
-	if err != nil {
-		return err
-	}
-	value.Set(reflect.ValueOf(t))
-	return nil
-}
-
-func setTimeField(val string, value reflect.Value) error {
-	t, err := time.Parse(time.RFC3339Nano, val)
-	if err != nil {
-		return err
-	}
-	value.Set(reflect.ValueOf(t))
-	return nil
-}
-
-func setByteSlice(val string, value reflect.Value) error {
-	value.Set(reflect.ValueOf(util.StringToBytes(val)))
-	return nil
-}
-
-func getTag(field reflect.Type, i int, tag string) string {
-	if tag != "" {
-		if d := field.Field(i).Tag.Get(tag); d != "" && d != "-" {
-			return d
-		}
-	}
-	return field.Field(i).Name
 }
