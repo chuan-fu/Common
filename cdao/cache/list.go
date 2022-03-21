@@ -35,7 +35,7 @@ type (
 // 使用zset存储，cache使用覆盖式写入防止重复
 // GetListByDBFunc 返回值的interface{} 需要为[]string 或者 slice 或者 &slice
 // slice 和 &slice 会转换成[]string
-// 且不可为空，若为空，则每次都会打到DB
+// 如getByDb为空，cache会写入一个空字符串
 func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListByDBFunc, opts ...BaseListCacheOption) (resp []string, err error) {
 	b := &BaseListCacheOptions{
 		CheckExists: defaultCheckExists,
@@ -47,6 +47,11 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListB
 		opt(b)
 	}
 
+	if !b.IsAll && (b.PageIndex < 1 || b.PageSize < 1) {
+		err = errors.New("页数、行数有误")
+		return
+	}
+
 	var has bool
 	has, err = b.CheckExists(ctx, op) // 校验缓存是否存在
 	if err != nil {
@@ -55,9 +60,14 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListB
 	if err == nil && has {
 		resp, err = b.GetByCache(ctx, op, b.IsAll, b.PageIndex, b.PageSize) // 获取缓存，并返回
 		if err == nil {
+			// 第一页或者全部，且只有一条空数据，代表为空
+			if (b.IsAll || b.PageIndex == 1) && len(resp) == 1 && resp[0] == "" {
+				resp = []string{}
+			}
 			return resp, nil
+		} else {
+			log.Error(errors.Wrap(err, "GetByCache"))
 		}
-		log.Error(errors.Wrap(err, "GetByCache"))
 	}
 
 	var data interface{}
@@ -76,12 +86,16 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListB
 			return
 		}
 	}
-	if len(resp) > 0 {
-		err = b.SetCache(ctx, op, resp) // 写入cache
-		if err != nil {
-			log.Error(errors.Wrap(err, "SetCache"))
-			return
-		}
+
+	// 写入Cache
+	if len(resp) == 0 {
+		err = b.SetCache(ctx, op, []string{""}) // 写入空数据
+	} else {
+		err = b.SetCache(ctx, op, resp)
+	}
+	if err != nil {
+		log.Error(errors.Wrap(err, "SetCache"))
+		return
 	}
 
 	if b.IsAll { // 返回所有
@@ -101,6 +115,9 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListB
 }
 
 func toStringSlice(data interface{}) ([]string, error) {
+	if data == nil {
+		return []string{}, nil
+	}
 	if !util.IsSliceOrPtrSlice(data) {
 		return nil, errors.New("getByDb返回值需要为切片 或者 切片指针")
 	}

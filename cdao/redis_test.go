@@ -171,3 +171,20 @@ func TestTime(t *testing.T) {
 	v := fmt.Sprintf("%dns", uint64(vt))
 	fmt.Println(v)
 }
+
+func TestSAddCover(t *testing.T) {
+	err := NewBaseRedisOpWithKT("SAddCover", time.Minute).SAddCover(context.TODO(), []string{""})
+	if err != nil {
+		log.Error(err)
+		return
+	}
+}
+
+func TestSGetAll(t *testing.T) {
+	data, err := NewBaseRedisOpWithKT("SAddCover1", time.Minute).SGetAll(context.TODO())
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	fmt.Println(data)
+}

@@ -102,7 +102,22 @@ return 1
 */
 
 /* zgetallScript 获取所有
- */
+local num = redis.call("zcard", KEYS[1])
+if num > 0 then
+	return redis.call("zrange", KEYS[1], 0, num)
+end
+*/
+
+/* saddScript 覆盖式写入
+if redis.call("exists", KEYS[1]) == 1 then
+	redis.call("del", KEYS[1])
+end
+redis.call("sadd", KEYS[1], unpack(ARGV))
+if KEYS[2] then
+	redis.call("expire", KEYS[1], KEYS[2])
+end
+return 1
+*/
 const (
 	extendLockScript     = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("pexpire", KEYS[1], ARGV[2]) return 1 end return -1 else redis.call("set", KEYS[1], ARGV[1], "px", ARGV[2]) return 1 end`
 	delLockScript        = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("del", KEYS[1]) return 1 end return 0 end return -1`
@@ -111,11 +126,15 @@ const (
 	DelLockStatusSuccess = 1  // 删除成功
 
 	zaddScript    = `if redis.call("exists", KEYS[1]) == 1 then redis.call("del", KEYS[1]) end redis.call("zadd", KEYS[1], unpack(ARGV)) if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
-	zgetallScript = `
-local num = redis.call("zcard", KEYS[1])
-if num > 0 then
-	return redis.call("zrange", KEYS[1], 0, num)
-end`
+	zgetallScript = `local num = redis.call("zcard", KEYS[1]) if num > 0 then return redis.call("zrange", KEYS[1], 0, num) end`
+	saddScript    = `if redis.call("exists", KEYS[1]) == 1 then
+	redis.call("del", KEYS[1])
+end
+redis.call("sadd", KEYS[1], unpack(ARGV))
+if KEYS[2] then
+	redis.call("expire", KEYS[1], KEYS[2])
+end
+return 1`
 )
 
 const (
@@ -501,10 +520,29 @@ func (b *baseRedisOp) ZRangeStringListWithPage(ctx context.Context, pageIndex, p
 
 // 覆盖式写入set
 func (b *baseRedisOp) SAddCover(ctx context.Context, list []string) error {
+	if len(list) == 0 {
+		return nil
+	}
+	keys := []string{b.key}
+	if t := formatSec(b.ttl); t > 0 {
+		keys = append(keys, util.ToString(t))
+	}
+	args := make([]interface{}, len(list))
+	for k := range list {
+		args[k] = list[k]
+	}
+	_, err := b.redisCli.Eval(ctx, saddScript, keys, args...).Result()
+	if err != nil {
+		return errors.Wrap(err, "BaseRedisOp ZAdd")
+	}
 	return nil
 }
 
 func (b *baseRedisOp) SGetAll(ctx context.Context) (data []string, err error) {
+	data, err = b.redisCli.SMembers(ctx, b.key).Result()
+	if err != nil {
+		err = errors.Wrap(err, "BaseRedisOp SGetAll")
+	}
 	return
 }
 

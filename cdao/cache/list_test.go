@@ -60,3 +60,12 @@ func TestGetBaseListCache4(t *testing.T) {
 	})
 	fmt.Println(data, err)
 }
+
+func TestGetBaseListCache5(t *testing.T) {
+	op := cdao.NewBaseRedisOpWithKT("list:A:5", time.Minute)
+	data, err := GetBaseListCache(context.TODO(), op, func(ctx context.Context) (interface{}, error) {
+		log.Info("getByDb")
+		return []interface{}{1}, nil
+	})
+	fmt.Println(data, err)
+}
