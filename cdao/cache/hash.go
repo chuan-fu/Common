@@ -29,6 +29,7 @@ type (
 	BaseHashCacheOption func(*BaseHashCacheOptions)
 )
 
+// 默认使用json的tag，如不存在，则使用key
 func GetBaseHashCache(ctx context.Context, op cdao.BaseRedisOp, model interface{}, getByDb GetHashByDBFunc, opts ...BaseHashCacheOption) (err error) {
 	b := &BaseHashCacheOptions{
 		CheckExists: defaultCheckExists,

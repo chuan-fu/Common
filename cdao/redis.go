@@ -126,15 +126,8 @@ const (
 	DelLockStatusSuccess = 1  // 删除成功
 
 	zaddScript    = `if redis.call("exists", KEYS[1]) == 1 then redis.call("del", KEYS[1]) end redis.call("zadd", KEYS[1], unpack(ARGV)) if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
+	saddScript    = `if redis.call("exists", KEYS[1]) == 1 then redis.call("del", KEYS[1]) end redis.call("sadd", KEYS[1], unpack(ARGV)) if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
 	zgetallScript = `local num = redis.call("zcard", KEYS[1]) if num > 0 then return redis.call("zrange", KEYS[1], 0, num) end`
-	saddScript    = `if redis.call("exists", KEYS[1]) == 1 then
-	redis.call("del", KEYS[1])
-end
-redis.call("sadd", KEYS[1], unpack(ARGV))
-if KEYS[2] then
-	redis.call("expire", KEYS[1], KEYS[2])
-end
-return 1`
 )
 
 const (
@@ -359,6 +352,9 @@ func (b *baseRedisOp) HSetModel(ctx context.Context, model interface{}) error {
 	if rt.Kind() != reflect.Struct {
 		return errors.New("传入的model要为结构体或结构体指针")
 	}
+	if rt.NumField() == 0 {
+		return errors.New("结构体列为空")
+	}
 
 	args := make([]interface{}, 0, 2*rt.NumField())
 	for i := 0; i < rt.NumField(); i++ {
@@ -383,10 +379,14 @@ func (b *baseRedisOp) HGetModel(ctx context.Context, model interface{}) error {
 	}
 
 	rt := reflect.TypeOf(model).Elem()
+	if rt.NumField() == 0 {
+		return nil
+	}
 	args := make([]string, rt.NumField())
 	for i := 0; i < rt.NumField(); i++ {
 		args[i] = getTag(rt, i, b.tag)
 	}
+
 	values, err := b.redisCli.HMGet(ctx, b.key, args...).Result()
 	if err != nil {
 		return errors.Wrap(err, "BaseRedisOp HGetModel HMSet")
@@ -407,6 +407,9 @@ func (b *baseRedisOp) HGetModel(ctx context.Context, model interface{}) error {
 
 // hash map写入
 func (b *baseRedisOp) HSetMap(ctx context.Context, m map[string]interface{}) error {
+	if len(m) == 0 {
+		return errors.New("map为空")
+	}
 	args := make([]interface{}, 0, 2*len(m))
 	for k, v := range m {
 		args = append(args, k, util.ToString(v))
@@ -424,6 +427,9 @@ func (b *baseRedisOp) HSetMap(ctx context.Context, m map[string]interface{}) err
 
 // hash map读取
 func (b *baseRedisOp) HGetMap(ctx context.Context, m map[string]string) error {
+	if len(m) == 0 {
+		return nil
+	}
 	args := make([]string, 0, len(m))
 	for k := range m {
 		args = append(args, k)
