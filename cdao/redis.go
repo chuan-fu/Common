@@ -54,9 +54,14 @@ type BaseRedisOp interface {
 	HGetAll(ctx context.Context) (map[string]string, error)
 
 	// zset
-	ZAddString(ctx context.Context, list []string) error
-	ZRangeString(ctx context.Context, start, stop int64) (data []string, err error)                 // 根据下标
-	ZRangeStringWithPage(ctx context.Context, pageIndex, pageSize int64) (data []string, err error) // 根据分页
+	ZAddCoverStringList(ctx context.Context, list []string) error
+	ZGetAll(ctx context.Context) (data []string, err error)
+	ZRangeStringList(ctx context.Context, start, stop int64) (data []string, err error)                 // 根据下标
+	ZRangeStringListWithPage(ctx context.Context, pageIndex, pageSize int64) (data []string, err error) // 根据分页
+
+	// set
+	SAddCover(ctx context.Context, list []string) error     // 覆盖式写入
+	SGetAll(ctx context.Context) (data []string, err error) // 读取所有
 }
 
 /* delLockScript
@@ -95,6 +100,9 @@ if KEYS[2] then
 end
 return 1
 */
+
+/* zgetallScript 获取所有
+ */
 const (
 	extendLockScript     = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("pexpire", KEYS[1], ARGV[2]) return 1 end return -1 else redis.call("set", KEYS[1], ARGV[1], "px", ARGV[2]) return 1 end`
 	delLockScript        = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("del", KEYS[1]) return 1 end return 0 end return -1`
@@ -102,13 +110,20 @@ const (
 	DelLockStatusExpired = 0  // 锁已过期
 	DelLockStatusSuccess = 1  // 删除成功
 
-	zaddScript = `if redis.call("exists", KEYS[1]) == 1 then redis.call("del", KEYS[1]) end redis.call("zadd", KEYS[1], unpack(ARGV)) if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
+	zaddScript    = `if redis.call("exists", KEYS[1]) == 1 then redis.call("del", KEYS[1]) end redis.call("zadd", KEYS[1], unpack(ARGV)) if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
+	zgetallScript = `
+local num = redis.call("zcard", KEYS[1])
+if num > 0 then
+	return redis.call("zrange", KEYS[1], 0, num)
+end`
 )
 
 const (
 	TagJson = "json"
 	TagXml  = "xml"
 	TagGorm = "gorm"
+
+	defaultTag = TagJson
 )
 
 var (
@@ -127,7 +142,7 @@ func NewBaseRedisOp(redisCli ...redis.Cmdable) BaseRedisOp {
 	if len(redisCli) > 0 {
 		return &baseRedisOp{redisCli: redisCli[0]}
 	}
-	return &baseRedisOp{redisCli: dbRedis.GetRedisCli()}
+	return &baseRedisOp{redisCli: dbRedis.GetRedisCli(), tag: defaultTag}
 }
 
 func NewBaseRedisOpWithKT(key string, ttl time.Duration, redisCli ...redis.Cmdable) BaseRedisOp {
@@ -424,8 +439,8 @@ func (b *baseRedisOp) HGetAll(ctx context.Context) (map[string]string, error) {
 	return m, nil
 }
 
-// 覆盖式写入，并设置ttl
-func (b *baseRedisOp) ZAddString(ctx context.Context, list []string) error {
+// 覆盖式写入zset，并设置ttl
+func (b *baseRedisOp) ZAddCoverStringList(ctx context.Context, list []string) error {
 	if len(list) == 0 {
 		return nil
 	}
@@ -445,8 +460,26 @@ func (b *baseRedisOp) ZAddString(ctx context.Context, list []string) error {
 	return nil
 }
 
+func (b *baseRedisOp) ZGetAll(ctx context.Context) ([]string, error) {
+	dataInter, err := b.redisCli.Eval(ctx, zgetallScript, []string{b.key}).Result()
+	if err != nil && !IsRedisNil(err) {
+		err = errors.Wrap(err, "BaseRedisOp ZGetAll")
+		return nil, err
+	}
+	if dataInter == nil {
+		return nil, nil
+	}
+
+	dataList, _ := dataInter.([]interface{})
+	data := make([]string, 0, len(dataList))
+	for k := range dataList {
+		data = append(data, util.ToString(dataList[k]))
+	}
+	return data, nil
+}
+
 // 获取列表数据
-func (b *baseRedisOp) ZRangeString(ctx context.Context, start, stop int64) (data []string, err error) {
+func (b *baseRedisOp) ZRangeStringList(ctx context.Context, start, stop int64) (data []string, err error) {
 	data, err = b.redisCli.ZRange(ctx, b.key, start, stop).Result()
 	if err != nil {
 		err = errors.Wrap(err, "BaseRedisOp ZRange")
@@ -455,7 +488,7 @@ func (b *baseRedisOp) ZRangeString(ctx context.Context, start, stop int64) (data
 }
 
 // 获取列表数据
-func (b *baseRedisOp) ZRangeStringWithPage(ctx context.Context, pageIndex, pageSize int64) (data []string, err error) {
+func (b *baseRedisOp) ZRangeStringListWithPage(ctx context.Context, pageIndex, pageSize int64) (data []string, err error) {
 	start := (pageIndex - 1) * pageSize
 	end := start + pageSize - 1
 
@@ -463,6 +496,15 @@ func (b *baseRedisOp) ZRangeStringWithPage(ctx context.Context, pageIndex, pageS
 	if err != nil {
 		err = errors.Wrap(err, "BaseRedisOp ZRange")
 	}
+	return
+}
+
+// 覆盖式写入set
+func (b *baseRedisOp) SAddCover(ctx context.Context, list []string) error {
+	return nil
+}
+
+func (b *baseRedisOp) SGetAll(ctx context.Context) (data []string, err error) {
 	return
 }
 

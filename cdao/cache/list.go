@@ -11,9 +11,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// use zet 或者 zset
-// 需要删除，因为可能重复
-
 /*
 func defaultGetByDB(db *gorm.DB, id int64) GetByDBFunc {
 	return func(model interface{}) (data string, err error) {
@@ -28,21 +25,23 @@ func defaultGetByDB(db *gorm.DB, id int64) GetByDBFunc {
 */
 
 type (
-	GetListByCacheFunc func(ctx context.Context, b cdao.BaseRedisOp, pageIndex, pageSize int64) ([]string, error)
+	GetListByCacheFunc func(ctx context.Context, b cdao.BaseRedisOp, isAll bool, pageIndex, pageSize int64) ([]string, error)
 	SetListCacheFunc   func(ctx context.Context, b cdao.BaseRedisOp, v []string) error
 	GetListByDBFunc    func(ctx context.Context) (interface{}, error)
 
 	BaseListCacheOption func(*BaseListCacheOptions)
 )
 
+// 使用zset存储，cache使用覆盖式写入防止重复
 // GetListByDBFunc 返回值的interface{} 需要为[]string 或者 slice 或者 &slice
 // slice 和 &slice 会转换成[]string
 // 且不可为空，若为空，则每次都会打到DB
-func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, pageIndex, pageSize int64, getByDb GetListByDBFunc, opts ...BaseListCacheOption) (resp []string, err error) {
+func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListByDBFunc, opts ...BaseListCacheOption) (resp []string, err error) {
 	b := &BaseListCacheOptions{
 		CheckExists: defaultCheckExists,
 		GetByCache:  defaultGetListByCache,
 		SetCache:    defaultSetListCache,
+		IsAll:       true,
 	}
 	for _, opt := range opts {
 		opt(b)
@@ -54,7 +53,7 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, pageIndex, pageS
 		log.Error(errors.Wrap(err, "CheckExists"))
 	}
 	if err == nil && has {
-		resp, err = b.GetByCache(ctx, op, pageIndex, pageSize) // 获取缓存，并返回
+		resp, err = b.GetByCache(ctx, op, b.IsAll, b.PageIndex, b.PageSize) // 获取缓存，并返回
 		if err == nil {
 			return resp, nil
 		}
@@ -85,9 +84,12 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, pageIndex, pageS
 		}
 	}
 
+	if b.IsAll { // 返回所有
+		return
+	}
 	// 返回值数据分页
-	start := (pageIndex - 1) * pageSize
-	stop := start + pageSize
+	start := (b.PageIndex - 1) * b.PageSize
+	stop := start + b.PageSize
 	total := int64(len(resp))
 	if start >= total {
 		return []string{}, nil
@@ -114,18 +116,23 @@ func toStringSlice(data interface{}) ([]string, error) {
 	return resp, nil
 }
 
-func defaultGetListByCache(ctx context.Context, b cdao.BaseRedisOp, pageIndex, pageSize int64) ([]string, error) {
-	return b.ZRangeStringWithPage(ctx, pageIndex, pageSize)
+func defaultGetListByCache(ctx context.Context, b cdao.BaseRedisOp, isAll bool, pageIndex, pageSize int64) ([]string, error) {
+	if isAll {
+		return b.ZGetAll(ctx)
+	}
+	return b.ZRangeStringListWithPage(ctx, pageIndex, pageSize)
 }
 
 func defaultSetListCache(ctx context.Context, b cdao.BaseRedisOp, vs []string) error {
-	return b.ZAddString(ctx, vs)
+	return b.ZAddCoverStringList(ctx, vs)
 }
 
 type BaseListCacheOptions struct {
-	CheckExists CheckExistsFunc
-	GetByCache  GetListByCacheFunc
-	SetCache    SetListCacheFunc
+	CheckExists         CheckExistsFunc
+	GetByCache          GetListByCacheFunc
+	SetCache            SetListCacheFunc
+	IsAll               bool
+	PageIndex, PageSize int64
 }
 
 func WithCheckListExists(fn CheckExistsFunc) BaseListCacheOption {
@@ -143,5 +150,13 @@ func WithGetListByCache(fn GetListByCacheFunc) BaseListCacheOption {
 func WithSetListCache(fn SetListCacheFunc) BaseListCacheOption {
 	return func(opts *BaseListCacheOptions) {
 		opts.SetCache = fn
+	}
+}
+
+func WithSetListPage(pageIndex, pageSize int64) BaseListCacheOption {
+	return func(opts *BaseListCacheOptions) {
+		opts.IsAll = false
+		opts.PageIndex = pageIndex
+		opts.PageSize = pageSize
 	}
 }

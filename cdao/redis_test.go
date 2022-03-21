@@ -53,7 +53,7 @@ func TestSetModel(t *testing.T) {
 }
 
 func TestGetModel(t *testing.T) {
-	b := NewBaseRedisOpWithKT("GetModel", time.Minute).SetTag("json")
+	b := NewBaseRedisOpWithKT("GetModel", time.Minute)
 	a := &AA{}
 	err := b.HGetModel(context.TODO(), a)
 	fmt.Println(err)
@@ -72,15 +72,24 @@ func TestTTL(t *testing.T) {
 }
 
 func TestZAddString(t *testing.T) {
-	err := NewBaseRedisOp().SetKey("ZAdd").SetTTL(time.Hour).ZAddString(context.TODO(), []string{"A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12"})
+	err := NewBaseRedisOp().SetKey("ZAdd").SetTTL(time.Hour).ZAddCoverStringList(context.TODO(), []string{"A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12"})
 	if err != nil {
 		log.Error(err)
 		return
 	}
 }
 
+func TestZGetAll(t *testing.T) {
+	data, err := NewBaseRedisOp().SetKey("HSetMap").SetTTL(time.Hour).ZGetAll(context.TODO())
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	fmt.Println(data)
+}
+
 func TestZRangeString(t *testing.T) {
-	data, err := NewBaseRedisOp().SetKey("ZAdd").ZRangeString(context.TODO(), 1, 10)
+	data, err := NewBaseRedisOp().SetKey("ZAdd").ZRangeStringList(context.TODO(), 1, 10)
 	if err != nil {
 		log.Error(err)
 		return
