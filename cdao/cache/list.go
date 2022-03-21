@@ -2,8 +2,6 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"reflect"
 
 	"github.com/chuan-fu/Common/util"
@@ -111,19 +109,7 @@ func toStringSlice(data interface{}) ([]string, error) {
 
 	resp := make([]string, 0, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
-		val := rv.Index(i)
-		switch val.Kind() {
-		case reflect.String:
-			resp = append(resp, val.String())
-		case reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
-			d, err := json.Marshal(val.Interface())
-			if err != nil {
-				return nil, err
-			}
-			resp = append(resp, util.BytesToString(d))
-		default:
-			resp = append(resp, fmt.Sprintf("%v", val.Interface()))
-		}
+		resp = append(resp, util.ToString(rv.Index(i).Interface()))
 	}
 	return resp, nil
 }
