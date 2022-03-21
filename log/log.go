@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/chuan-fu/Common/util"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -101,7 +103,7 @@ func init() {
 			return
 		}
 	}
-	logger = initZapLog([]byte(defaultConfFile))
+	logger = initZapLog(util.StringToBytes(defaultConfFile))
 }
 
 func initZapLog(bs []byte) (logger *zap.Logger) {
@@ -114,7 +116,7 @@ func initZapLog(bs []byte) (logger *zap.Logger) {
 }
 
 func ReplaceLoggerFromString(cfg string) {
-	logger = initZapLog([]byte(cfg))
+	logger = initZapLog(util.StringToBytes(cfg))
 }
 
 func GetLogger() *zap.Logger {

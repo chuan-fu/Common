@@ -43,6 +43,16 @@ const (
 )
 
 func setReflectValueByStr(value reflect.Value, val string) error {
+	// 部分类型特殊处理
+	switch value.Interface().(type) {
+	case time.Duration:
+		return setTimeDuration(val, value)
+	case time.Time:
+		return setTimeField(val, value)
+	case []byte:
+		return setByteSlice(val, value)
+	}
+
 	switch value.Kind() {
 	case reflect.Int:
 		return setIntField(val, BitSize0, value)
@@ -53,9 +63,6 @@ func setReflectValueByStr(value reflect.Value, val string) error {
 	case reflect.Int32:
 		return setIntField(val, BitSize32, value)
 	case reflect.Int64:
-		if _, ok := value.Interface().(time.Duration); ok {
-			return setTimeDuration(val, value)
-		}
 		return setIntField(val, BitSize64, value)
 	case reflect.Uint:
 		return setUintField(val, BitSize0, value)
@@ -79,17 +86,7 @@ func setReflectValueByStr(value reflect.Value, val string) error {
 		return setComplexField(val, BitSize128, value)
 	case reflect.String:
 		value.SetString(val)
-	case reflect.Struct:
-		if _, ok := value.Interface().(time.Time); ok {
-			return setTimeField(val, value)
-		}
-		return json.Unmarshal(util.StringToBytes(val), value.Addr().Interface())
-	case reflect.Map, reflect.Array:
-		return json.Unmarshal(util.StringToBytes(val), value.Addr().Interface())
-	case reflect.Slice:
-		if _, ok := value.Interface().([]byte); ok {
-			return setByteSlice(val, value)
-		}
+	case reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
 		return json.Unmarshal(util.StringToBytes(val), value.Addr().Interface())
 	default:
 		return errors.New(fmt.Sprintf("setReflectValueByStr 不可转换类型:%d", value.Kind()))

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 const (
@@ -25,6 +26,17 @@ func ToFloat(s string) (float64, error) {
 }
 
 func ToString(v interface{}) string {
+	// 部分类型特殊处理
+	// 和cdao/internal.go:45里的反序列化相匹配，勿轻易修改
+	switch vt := v.(type) {
+	case []byte:
+		return BytesToString(vt)
+	case time.Time:
+		return vt.Format(time.RFC3339Nano)
+	case time.Duration:
+		return timeDurationToString(vt)
+	}
+
 	rv := reflect.ValueOf(v)
 	switch rv.Kind() {
 	case reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
@@ -35,4 +47,23 @@ func ToString(v interface{}) string {
 	default:
 		return fmt.Sprintf("%v", rv.Interface())
 	}
+}
+
+func timeDurationToString(vt time.Duration) string {
+	if vt%time.Hour == 0 {
+		return fmt.Sprintf("%dh", vt/time.Hour)
+	}
+	if vt%time.Minute == 0 {
+		return fmt.Sprintf("%dm", vt/time.Minute)
+	}
+	if vt%time.Second == 0 {
+		return fmt.Sprintf("%ds", vt/time.Second)
+	}
+	if vt%time.Millisecond == 0 {
+		return fmt.Sprintf("%dms", vt/time.Millisecond)
+	}
+	if vt%time.Microsecond == 0 {
+		return fmt.Sprintf("%dµs", vt/time.Microsecond)
+	}
+	return fmt.Sprintf("%dns", vt/time.Nanosecond)
 }

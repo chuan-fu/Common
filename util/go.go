@@ -18,7 +18,7 @@ func DeferFunc() {
 		}
 		err := errors.New(fmt.Sprintf("panic at(%v): %v", funcName, e))
 		log.Error(err)
-		log.Errorf(string(debug.Stack()))
+		log.Errorf(BytesToString(debug.Stack()))
 	}
 }
 

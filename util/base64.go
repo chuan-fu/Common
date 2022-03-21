@@ -10,7 +10,7 @@ func Encode(s string) string {
 	if s == "" {
 		return s
 	}
-	return base64.StdEncoding.EncodeToString([]byte(s))
+	return base64.StdEncoding.EncodeToString(StringToBytes(s))
 }
 
 // base64解码
@@ -22,7 +22,7 @@ func Decode(s string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(b), nil
+	return BytesToString(b), nil
 }
 
 // url编码

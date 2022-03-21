@@ -2,9 +2,12 @@ package cdao
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/chuan-fu/Common/util"
 
 	"github.com/chuan-fu/Common/db/redis"
 	log "github.com/chuan-fu/Common/zlog"
@@ -25,6 +28,8 @@ type AA struct {
 	C []byte                 `json:"c"`
 	D bool                   `json:"d"`
 	E map[string]interface{} `json:"e"`
+	F time.Duration
+	G time.Time
 }
 
 func TestCache(t *testing.T) {
@@ -110,17 +115,50 @@ func TestHGetAll(t *testing.T) {
 }
 
 func TestHSetModel(t *testing.T) {
-	err := NewBaseRedisOpWithKT("HSetModel", time.Minute).HSetModel(context.TODO(), AA{
+	err := NewBaseRedisOpWithKT("HSetModel", time.Hour).HSetModel(context.TODO(), &AA{
 		A: 0,
-		B: "",
-		C: nil,
-		D: false,
+		B: "aa",
+		C: []byte{'a', 'b'},
+		D: true,
 		E: map[string]interface{}{
 			"E1": "1",
 		},
+		F: time.Second,
+		G: time.Now(),
 	})
 	if err != nil {
 		log.Error(err)
 		return
 	}
+}
+
+func TestHGetModel(t *testing.T) {
+	a := &AA{}
+	err := NewBaseRedisOpWithKT("HSetModel", time.Minute).HGetModel(context.TODO(), a)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	fmt.Printf("%+v", a)
+}
+
+func TestAA(t *testing.T) {
+	b := "av"
+	// b := []byte{'a', 'b'}
+	// b := []string{"v", "a"}
+
+	bb := make([]byte, 0)
+	err := json.Unmarshal([]byte(b), &bb)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	fmt.Println(bb)
+	fmt.Println(util.ToString(bb))
+}
+
+func TestTime(t *testing.T) {
+	vt := time.Second
+	v := fmt.Sprintf("%dns", uint64(vt))
+	fmt.Println(v)
 }
