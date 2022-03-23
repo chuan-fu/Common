@@ -3,6 +3,7 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"unsafe"
 )
 
@@ -40,4 +41,16 @@ func BytesToString(b []byte) string {
 func Fmt(i interface{}) {
 	d, _ := json.Marshal(i)
 	fmt.Println(BytesToString(d))
+}
+
+func ConvertToIntArray(arr []string) ([]int, bool) {
+	result := make([]int, 0)
+	for _, i := range arr {
+		res, err := strconv.Atoi(i)
+		if err != nil {
+			return result, false
+		}
+		result = append(result, res)
+	}
+	return result, true
 }

@@ -485,6 +485,7 @@ func (b *baseRedisOp) ZAddCoverStringList(ctx context.Context, list []string) er
 	return nil
 }
 
+// zset获取所有
 func (b *baseRedisOp) ZGetAll(ctx context.Context) ([]string, error) {
 	dataInter, err := b.redisCli.Eval(ctx, zgetallScript, []string{b.key}).Result()
 	if err != nil && !IsRedisNil(err) {
