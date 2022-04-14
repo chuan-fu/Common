@@ -10,7 +10,6 @@ func OttoRun(s string) (otto.Value, error) {
 	return otto.New().Run(s)
 }
 
-// TODO 未测试过
 // JSObjectToJSON 将js对象转为json
 func JSObjectToJSON(s string) ([]byte, error) {
 	vm := otto.New()

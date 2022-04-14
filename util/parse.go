@@ -1,11 +1,9 @@
 package util
 
 import (
-	"encoding/json"
-	"fmt"
-	"reflect"
 	"strconv"
-	"time"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -14,56 +12,34 @@ const (
 )
 
 func ToInt(s string) (int, error) {
-	return strconv.Atoi(s)
+	if s == "" {
+		return 0, errors.New(`ToInt: unable to ToInt("")`)
+	}
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, errors.Wrap(err, "ToInt")
+	}
+	return i, nil
 }
 
 func ToInt64(s string) (int64, error) {
-	return strconv.ParseInt(s, Int64Base, NumBitSize)
+	if s == "" {
+		return 0, errors.New(`ToInt64: unable to ToInt64("")`)
+	}
+	i, err := strconv.ParseInt(s, Int64Base, NumBitSize)
+	if err != nil {
+		return 0, errors.Wrap(err, "ToInt64")
+	}
+	return i, nil
 }
 
 func ToFloat(s string) (float64, error) {
-	return strconv.ParseFloat(s, NumBitSize)
-}
-
-func ToString(v interface{}) string {
-	// 部分类型特殊处理
-	// 和cdao/internal.go:45里的反序列化相匹配，勿轻易修改
-	switch vt := v.(type) {
-	case []byte:
-		return BytesToString(vt)
-	case time.Time:
-		return vt.Format(time.RFC3339Nano)
-	case time.Duration:
-		return timeDurationToString(vt)
+	if s == "" {
+		return 0, errors.New(`ToFloat: unable to ToFloat("")`)
 	}
-
-	rv := reflect.ValueOf(v)
-	switch rv.Kind() {
-	case reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
-		d, _ := json.Marshal(v)
-		return BytesToString(d)
-	case reflect.String:
-		return rv.String()
-	default:
-		return fmt.Sprintf("%v", rv.Interface())
+	i, err := strconv.ParseFloat(s, NumBitSize)
+	if err != nil {
+		return 0, errors.Wrap(err, "ToFloat")
 	}
-}
-
-func timeDurationToString(vt time.Duration) string {
-	if vt%time.Hour == 0 {
-		return fmt.Sprintf("%dh", vt/time.Hour)
-	}
-	if vt%time.Minute == 0 {
-		return fmt.Sprintf("%dm", vt/time.Minute)
-	}
-	if vt%time.Second == 0 {
-		return fmt.Sprintf("%ds", vt/time.Second)
-	}
-	if vt%time.Millisecond == 0 {
-		return fmt.Sprintf("%dms", vt/time.Millisecond)
-	}
-	if vt%time.Microsecond == 0 {
-		return fmt.Sprintf("%dµs", vt/time.Microsecond)
-	}
-	return fmt.Sprintf("%dns", vt/time.Nanosecond)
+	return i, nil
 }

@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/chuan-fu/Common/util"
 )
 
@@ -89,7 +87,8 @@ func setReflectValueByStr(value reflect.Value, val string) error {
 	case reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
 		return json.Unmarshal(util.StringToBytes(val), value.Addr().Interface())
 	default:
-		return errors.New(fmt.Sprintf("setReflectValueByStr 不可转换类型:%d", value.Kind()))
+
+		return fmt.Errorf("setReflectValueByStr: unable to set type %d", value.Kind())
 	}
 	return nil
 }

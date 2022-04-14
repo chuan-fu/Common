@@ -16,7 +16,7 @@ func Encode(s string) string {
 
 func EncodeV2(s string) string {
 	result := base64.StdEncoding.EncodeToString([]byte(s))
-	result = strings.Replace(strings.Replace(strings.Replace(result, "=", "", -1), "/", "_", -1), "+", "-", -1)
+	result = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(result, "=", ""), "/", "_"), "+", "-")
 	return result
 }
 
@@ -36,11 +36,11 @@ func DecodeV2(s string) (string, error) {
 	remainder := len(s) % 4
 	// base64编码需要为4的倍数，如果不是4的倍数，则填充"="号
 	if remainder > 0 {
-		padlen := 4 - remainder
-		s = s + strings.Repeat("=", padlen)
+		padLen := 4 - remainder
+		s = s + strings.Repeat("=", padLen)
 	}
 	// 将原字符串中的"_","-"分别用"/"和"+"替换
-	s = strings.Replace(strings.Replace(s, "_", "/", -1), "-", "+", -1)
+	s = strings.ReplaceAll(strings.ReplaceAll(s, "_", "/"), "-", "+")
 	result, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		return "", err

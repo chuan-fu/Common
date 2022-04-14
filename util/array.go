@@ -1,8 +1,6 @@
 package util
 
 import (
-	"encoding/json"
-	"fmt"
 	"strconv"
 	"unsafe"
 )
@@ -36,11 +34,6 @@ func StringToBytes(s string) []byte {
 
 func BytesToString(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
-}
-
-func Fmt(i interface{}) {
-	d, _ := json.Marshal(i)
-	fmt.Println(BytesToString(d))
 }
 
 func ConvertToIntArray(arr []string) ([]int, bool) {

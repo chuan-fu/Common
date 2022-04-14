@@ -7,7 +7,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/jinzhu/configor v1.2.1
 	github.com/pkg/errors v0.9.1
-	github.com/robertkrimen/otto v0.0.0-20211024170158-b87d35c0b86f // indirect
+	github.com/robertkrimen/otto v0.0.0-20211024170158-b87d35c0b86f
 	github.com/rs/zerolog v1.26.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/spaolacci/murmur3 v1.1.0
