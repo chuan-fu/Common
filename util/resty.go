@@ -74,7 +74,7 @@ func (c *Client) post(ctx context.Context, url string, body, result interface{})
 		return nil, errors.Wrap(err, "Post")
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("post: request error code:%d , body:%s .", resp.StatusCode(), BytesToString(resp.Body()))
+		return nil, fmt.Errorf("post: request error url:%s , code:%d , body:%s .", url, resp.StatusCode(), BytesToString(resp.Body()))
 	}
 	return resp.Body(), nil
 }
@@ -89,7 +89,7 @@ func (c *Client) get(ctx context.Context, url string, result interface{}) ([]byt
 		return nil, errors.Wrap(err, "Get")
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("Get: request error code:%d , body:%s", resp.StatusCode(), BytesToString(resp.Body()))
+		return nil, fmt.Errorf("get: request error url:%s , code:%d , body:%s .", url, resp.StatusCode(), BytesToString(resp.Body()))
 	}
 	return resp.Body(), nil
 }

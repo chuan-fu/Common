@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -29,29 +28,10 @@ func init() {
 	}
 }
 
-func TestModelCache(t *testing.T) {
-	op := cdao.NewBaseRedisOpWithKT("test:A:1", time.Minute)
-	m := &AA{}
-
-	data, err := GetBaseStringCache(context.TODO(), op,
-		func(ctx context.Context, model interface{}) (data string, err error) {
-			log.Info("getByDB")
-			err = json.Unmarshal([]byte(`{"id":1}`), model)
-			if err != nil {
-				log.Error(err)
-			}
-			return
-		},
-		WithSetModel(m),
-	)
-	fmt.Println(data, err)
-	fmt.Printf("%+v", m)
-}
-
 func TestStrCache(t *testing.T) {
 	op := cdao.NewBaseRedisOpWithKT("test:A:2", time.Minute)
 	data, err := GetBaseStringCache(context.TODO(), op,
-		func(ctx context.Context, model interface{}) (string, error) {
+		func(ctx context.Context) (string, error) {
 			log.Info("getByDB")
 			return `234`, nil
 		},

@@ -159,21 +159,6 @@ func ToString(v interface{}) string {
 	}
 }
 
-// 返回非指针类型【取地址】
-func Indirect(v interface{}) interface{} {
-	if v == nil {
-		return nil
-	}
-	if reflect.TypeOf(v).Kind() != reflect.Ptr {
-		return v
-	}
-	rv := reflect.ValueOf(v)
-	for rv.Kind() == reflect.Ptr && !rv.IsNil() {
-		rv = rv.Elem()
-	}
-	return rv.Interface()
-}
-
 func timeDurationToString(vt time.Duration) string {
 	if vt%time.Hour == 0 {
 		return fmt.Sprintf("%dh", vt/time.Hour)

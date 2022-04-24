@@ -358,7 +358,7 @@ func (b *baseRedisOp) HSetModel(ctx context.Context, model interface{}) error {
 
 	args := make([]interface{}, 0, 2*rt.NumField())
 	for i := 0; i < rt.NumField(); i++ {
-		args = append(args, getTag(rt, i, b.tag), util.ToString(rv.Field(i).Interface()))
+		args = append(args, util.GetTag(rt, i, b.tag), util.ToString(rv.Field(i).Interface()))
 	}
 
 	if _, err := b.redisCli.HMSet(ctx, b.key, args...).Result(); err != nil {
@@ -384,7 +384,7 @@ func (b *baseRedisOp) HGetModel(ctx context.Context, model interface{}) error {
 	}
 	args := make([]string, rt.NumField())
 	for i := 0; i < rt.NumField(); i++ {
-		args[i] = getTag(rt, i, b.tag)
+		args[i] = util.GetTag(rt, i, b.tag)
 	}
 
 	values, err := b.redisCli.HMGet(ctx, b.key, args...).Result()
@@ -398,7 +398,7 @@ func (b *baseRedisOp) HGetModel(ctx context.Context, model interface{}) error {
 			continue
 		}
 		vStr, _ := values[i].(string)
-		if err = setReflectValueByStr(rv.Field(i), vStr); err != nil {
+		if err = util.SetReflectValueByStr(rv.Field(i), vStr); err != nil {
 			return err
 		}
 	}
