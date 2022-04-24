@@ -3,7 +3,6 @@ package pushplus
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/chuan-fu/Common/util"
 	"github.com/pkg/errors"
@@ -12,22 +11,11 @@ import (
 // post post请求
 func post(ctx context.Context, data *Message) error {
 	var res Result
-
-	resp, err := util.Client().R().
-		SetHeader("content-type", "application/json;charset=UTF-8").
-		SetContext(ctx).
-		SetBody(data).
-		SetResult(&res).
-		Post(uri)
-	if err != nil {
+	if _, err := util.Cli(nil).PostResult(ctx, uri, data, &res); err != nil {
 		return errors.Wrap(err, "请求出错")
 	}
-
-	if resp.StatusCode() == http.StatusOK {
-		if res.Code != 200 {
-			return errors.Wrap(errors.New(fmt.Sprintf("%v", res.Msg)), "请求出错")
-		}
-		return nil
+	if res.Code != 200 {
+		return errors.Wrap(errors.New(fmt.Sprintf("%v", res.Msg)), "请求出错")
 	}
-	return errors.Wrap(errors.New(fmt.Sprintf("连接pushplus服务报错 status:%v", resp.StatusCode())), "请求出错")
+	return nil
 }
