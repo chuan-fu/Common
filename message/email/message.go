@@ -4,6 +4,13 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
+const (
+	keyFrom    = "From"
+	keyTo      = "To"
+	keySubject = "Subject"
+	keyBody    = "text/html"
+)
+
 type message struct {
 	msg *gomail.Message
 }
@@ -13,28 +20,28 @@ type Option func(m *message)
 // 发件人
 func WithFrom(from string) Option {
 	return func(m *message) {
-		m.msg.SetHeader("From", from)
+		m.msg.SetHeader(keyFrom, from)
 	}
 }
 
 // 收件人
 func WithTo(to string) Option {
 	return func(m *message) {
-		m.msg.SetHeader("To", to)
+		m.msg.SetHeader(keyTo, to)
 	}
 }
 
 // 邮件标题
 func WithSubject(subject string) Option {
 	return func(m *message) {
-		m.msg.SetHeader("Subject", subject)
+		m.msg.SetHeader(keySubject, subject)
 	}
 }
 
 // 邮件内容
 func WithBody(body string) Option {
 	return func(m *message) {
-		m.msg.SetBody("text/html", body)
+		m.msg.SetBody(keyBody, body)
 	}
 }
 
