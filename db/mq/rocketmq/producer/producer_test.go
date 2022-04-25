@@ -1,4 +1,4 @@
-package rocketmq
+package producer
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 func TestProducer1(t *testing.T) {
-	err := ConnectProducer(RocketMQConf{
+	err := ConnectProducer(ProducerConf{
 		NameServer: []string{"192.168.4.34:9876"},
 		Retry:      3,
 		GroupName:  "testProducer",

@@ -1,4 +1,4 @@
-package rocketmq
+package producer
 
 import (
 	"github.com/apache/rocketmq-client-go/v2"

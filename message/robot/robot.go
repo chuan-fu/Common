@@ -13,13 +13,15 @@ func NewRobot() *robot {
 	return &robot{}
 }
 
+var keyNilError = errors.New("无效的企微机器人key")
+
 // SendText 发送文本消息
 func (rbt *robot) SendText(ctx context.Context, key, text string, mentionedList, mentionedMobileList []string) (err error) {
-	if len(strings.TrimSpace(key)) == 0 {
-		return errors.New("无效的企微机器人key")
+	if strings.TrimSpace(key) == "" {
+		return keyNilError
 	}
 
-	data := Message{
+	data := &Message{
 		MsgType: "text",
 		Text: Text{
 			Content:             text,
@@ -35,11 +37,11 @@ func (rbt *robot) SendText(ctx context.Context, key, text string, mentionedList,
 
 // SendMarkdown 发送markdown消息
 func (rbt *robot) SendMarkdown(ctx context.Context, key, markdown string, userIds []string) (err error) {
-	if len(strings.TrimSpace(key)) == 0 {
-		return errors.New("无效的企微机器人key")
+	if strings.TrimSpace(key) == "" {
+		return keyNilError
 	}
 
-	data := Message{
+	data := &Message{
 		MsgType: "markdown",
 		Markdown: struct {
 			Content string `json:"content"`
