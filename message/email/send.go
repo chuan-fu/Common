@@ -1,6 +1,8 @@
 package email
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	"gopkg.in/gomail.v2"
 )
@@ -28,7 +30,7 @@ func NewSendService(opts ...SendOption) *sendService {
 	return s
 }
 
-func (s *sendService) SendMessage(msgs ...*gomail.Message) error {
+func (s *sendService) SendMessage(ctx context.Context, msgs ...*gomail.Message) error {
 	if s.dialer == nil {
 		return errors.New("client为空，无法发送")
 	}
