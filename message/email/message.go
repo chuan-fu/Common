@@ -17,12 +17,14 @@ type message struct {
 
 type Option func(m *message)
 
+/*
 // 发件人
 func WithFrom(from string) Option {
 	return func(m *message) {
 		m.msg.SetHeader(keyFrom, from)
 	}
 }
+*/
 
 // 收件人
 func WithTo(to string) Option {
@@ -72,4 +74,12 @@ func NewMessageWithoutDefault(msg *gomail.Message, opts ...Option) *gomail.Messa
 		opt(m)
 	}
 	return m.msg
+}
+
+func NewParamMessage(to, subject, body string) *gomail.Message {
+	m := gomail.NewMessage()
+	m.SetHeader(keyTo, to)
+	m.SetHeader(keySubject, subject)
+	m.SetBody(keyBody, body)
+	return m
 }

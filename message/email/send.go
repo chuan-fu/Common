@@ -35,9 +35,7 @@ func (s *sendService) SendMessage(ctx context.Context, msgs ...*gomail.Message) 
 		return errors.New("client为空，无法发送")
 	}
 	for k := range msgs {
-		if msgs[k].GetHeader(keyFrom) == nil {
-			msgs[k].SetHeader(keyFrom, s.dialer.Username)
-		}
+		msgs[k].SetHeader(keyFrom, s.dialer.Username)
 	}
 	return s.dialer.DialAndSend(msgs...)
 }
