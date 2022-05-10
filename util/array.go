@@ -14,7 +14,7 @@ func IsInArray(s int64, array []int64) bool {
 	return false
 }
 
-func StrInArray(list []string, key string) bool {
+func IsInStrArray(key string, list []string) bool {
 	for _, v := range list {
 		if v == key {
 			return true
