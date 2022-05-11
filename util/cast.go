@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -145,6 +146,12 @@ func ToString(v interface{}) string {
 		return vt.Format(time.RFC3339Nano)
 	case time.Duration:
 		return timeDurationToString(vt)
+
+		// 最常用的两个类型，手动转换
+	case int64:
+		return strconv.FormatInt(vt, 10)
+	case int:
+		return strconv.Itoa(vt)
 	}
 
 	rv := reflect.ValueOf(v)

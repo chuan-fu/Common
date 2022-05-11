@@ -15,13 +15,17 @@ import (
 )
 
 type BaseRedisOp interface {
-	GetCli() redis.Cmdable
+	Cli() redis.Cmdable
 	SetKey(key string) BaseRedisOp
 	GetKey() string
 	SetTTL(ttl time.Duration) BaseRedisOp
 	GetTTL() time.Duration
 	SetTag(tag string) BaseRedisOp
 	GetTag() string
+
+	Ping(ctx context.Context) bool
+
+	Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error)
 
 	// string
 	Set(ctx context.Context, value string) error
@@ -136,6 +140,8 @@ const (
 	TagGorm = "gorm"
 
 	defaultTag = TagJson
+
+	pong = "PONG"
 )
 
 var (
@@ -161,7 +167,7 @@ func NewBaseRedisOpWithKT(key string, ttl time.Duration, redisCli ...redis.Cmdab
 	return NewBaseRedisOp(redisCli...).SetKey(key).SetTTL(ttl)
 }
 
-func (b *baseRedisOp) GetCli() redis.Cmdable {
+func (b *baseRedisOp) Cli() redis.Cmdable {
 	return b.redisCli
 }
 
@@ -190,6 +196,19 @@ func (b *baseRedisOp) SetTag(tag string) BaseRedisOp {
 
 func (b *baseRedisOp) GetTTL() time.Duration {
 	return b.ttl
+}
+
+func (b *baseRedisOp) Ping(ctx context.Context) bool {
+	v, err := b.redisCli.Ping(ctx).Result()
+	if err != nil {
+		// log.Error(errors.Wrap(err, "BaseRedisOp Ping"))
+		return false
+	}
+	return v == pong
+}
+
+func (b *baseRedisOp) Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error) {
+	return b.redisCli.Eval(ctx, script, keys, args...).Result()
 }
 
 func (b *baseRedisOp) Set(ctx context.Context, value string) error {

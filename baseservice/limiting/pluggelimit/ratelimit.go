@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package ratelimit // import "go.uber.org/ratelimit"
+package pluggelimit // import "go.uber.org/ratelimit"
 
 import (
 	"context"
@@ -98,12 +98,6 @@ func WithSlack(slack int) Option {
 	return func(c *config) {
 		c.slack = slack
 	}
-}
-
-type perOption time.Duration
-
-func (p perOption) apply(c *config) {
-	c.per = time.Duration(p)
 }
 
 // WithPer allows configuring limits for different time windows.

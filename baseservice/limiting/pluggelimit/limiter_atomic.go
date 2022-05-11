@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package ratelimit // import "go.uber.org/ratelimit"
+package pluggelimit // import "go.uber.org/ratelimit"
 
 import (
 	"context"
@@ -53,7 +53,7 @@ func newAtomicBased(rate int, opts ...Option) *atomicLimiter {
 	l := &atomicLimiter{
 		perRequest: perRequest,
 		maxSlack:   -1 * time.Duration(cfg.slack) * perRequest,
-		timeoutOpt: WithDurationOption(cfg.maxSleep),
+		timeoutOpt: WithDurationTimeOutOption(cfg.maxSleep),
 		clock:      cfg.clock,
 	}
 
@@ -72,11 +72,11 @@ func (t *atomicLimiter) Take() time.Time {
 }
 
 func (t *atomicLimiter) TakeWithContext(ctx context.Context) time.Time {
-	return t.TakeWithOpt(WithCtxOption(ctx))
+	return t.TakeWithOpt(WithCtxTimeOutOption(ctx))
 }
 
 func (t *atomicLimiter) TakeWithTimeOut(timeout time.Duration) time.Time {
-	return t.TakeWithOpt(WithDurationOption(timeout))
+	return t.TakeWithOpt(WithDurationTimeOutOption(timeout))
 }
 
 func (t *atomicLimiter) TakeWithOpt(opt TimeOutOption) time.Time {
@@ -145,7 +145,7 @@ func (t *atomicLimiter) TakeWithOpt(opt TimeOutOption) time.Time {
 
 type TimeOutOption func(s *state, interval time.Duration) bool // true表示已过期
 
-func WithCtxOption(ctx context.Context) TimeOutOption {
+func WithCtxTimeOutOption(ctx context.Context) TimeOutOption {
 	deadline, ok := ctx.Deadline()
 	if !ok {
 		return nil
@@ -155,7 +155,7 @@ func WithCtxOption(ctx context.Context) TimeOutOption {
 	}
 }
 
-func WithDurationOption(timeout time.Duration) TimeOutOption {
+func WithDurationTimeOutOption(timeout time.Duration) TimeOutOption {
 	if timeout <= 0 {
 		return nil
 	}
