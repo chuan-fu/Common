@@ -32,14 +32,6 @@ type AA struct {
 	G time.Time
 }
 
-func TestCache(t *testing.T) {
-	b := NewBaseRedisOpWithKT("setnx:1", time.Minute)
-	// fmt.Println(b.SetLock(context.TODO()))
-	// fmt.Println(b.SetLock(context.TODO()))
-	// fmt.Println(b.SetLock(context.TODO()))
-	fmt.Println(b.ExtendLock(context.TODO(), "34d815a8-7d60-4f83-8796-a15279be87f8"))
-}
-
 func TestSetModel(t *testing.T) {
 	b := NewBaseRedisOpWithKT("GetModel", time.Hour).SetTag("json")
 	err := b.HSetModel(context.TODO(), &AA{

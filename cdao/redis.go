@@ -11,7 +11,6 @@ import (
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 )
 
 type BaseRedisOp interface {
@@ -39,16 +38,6 @@ type BaseRedisOp interface {
 	TTL(ctx context.Context) (time.Duration, error)
 	Del(ctx context.Context) error
 
-	// 分布式锁
-	SetLock(ctx context.Context) (value string, ok bool, err error)
-	ExtendLock(ctx context.Context, value string) (int64, error)
-	DelLock(ctx context.Context, value string) (int64, error)
-
-	// 基数统计
-	PFAdd(ctx context.Context, els ...interface{}) error
-	PFCount(ctx context.Context) (count int64, err error)
-	PFMerge(ctx context.Context, keys ...string) error
-
 	// hash
 	HSetModel(ctx context.Context, model interface{}) error
 	HGetModel(ctx context.Context, model interface{}) error
@@ -67,32 +56,6 @@ type BaseRedisOp interface {
 	SAddCover(ctx context.Context, list []string) error     // 覆盖式写入
 	SGetAll(ctx context.Context) (data []string, err error) // 读取所有
 }
-
-/* delLockScript
-local v2 = redis.call("get", KEYS[1])
-if v2 then
-	if v2 == ARGV[1] then
-		redis.call("del", KEYS[1])
-		return 1
-	end
-	return -1
-end
-return 0
-*/
-
-/* extendLockScript
-local v2 = redis.call("get", KEYS[1])
-if v2 then
-	if v2 == ARGV[1] then
-		redis.call("pexpire", KEYS[1], ARGV[2])
-		return 1
-	end
-	return -1
-else
-	redis.call("set", KEYS[1], ARGV[1], "px", ARGV[2])
-	return 1
-end
-*/
 
 /* zaddScript 覆盖式写入
 if redis.call("exists", KEYS[1]) == 1 then
@@ -123,12 +86,6 @@ end
 return 1
 */
 const (
-	extendLockScript     = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("pexpire", KEYS[1], ARGV[2]) return 1 end return -1 else redis.call("set", KEYS[1], ARGV[1], "px", ARGV[2]) return 1 end`
-	delLockScript        = `local v2 = redis.call("get", KEYS[1]) if v2 then if v2 == ARGV[1] then redis.call("del", KEYS[1]) return 1 end return 0 end return -1`
-	DelLockStatusNotOwn  = -1 // 非本人的锁【锁已过期，且已被抢占】
-	DelLockStatusExpired = 0  // 锁已过期
-	DelLockStatusSuccess = 1  // 删除成功
-
 	zaddScript    = `if redis.call("exists", KEYS[1]) == 1 then redis.call("del", KEYS[1]) end redis.call("zadd", KEYS[1], unpack(ARGV)) if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
 	saddScript    = `if redis.call("exists", KEYS[1]) == 1 then redis.call("del", KEYS[1]) end redis.call("sadd", KEYS[1], unpack(ARGV)) if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
 	zgetallScript = `local num = redis.call("zcard", KEYS[1]) if num > 0 then return redis.call("zrange", KEYS[1], 0, num) end`
@@ -142,11 +99,6 @@ const (
 	defaultTag = TagJson
 
 	pong = "PONG"
-)
-
-var (
-	DelLockStatusNotOwnErr  = errors.New("BaseRedisOp DelLock: 锁已过期，且已被抢占")
-	DelLockStatusExpiredErr = errors.New("BaseRedisOp DelLock: 锁已过期")
 )
 
 type baseRedisOp struct {
@@ -201,7 +153,6 @@ func (b *baseRedisOp) GetTTL() time.Duration {
 func (b *baseRedisOp) Ping(ctx context.Context) bool {
 	v, err := b.redisCli.Ping(ctx).Result()
 	if err != nil {
-		// log.Error(errors.Wrap(err, "BaseRedisOp Ping"))
 		return false
 	}
 	return v == pong
@@ -284,80 +235,6 @@ func (b *baseRedisOp) Del(ctx context.Context) error {
 		return errors.Wrap(err, "BaseRedisOp Del")
 	}
 	return nil
-}
-
-// 分布式锁 写入
-// value为uuid，ok为是否写入成功
-func (b *baseRedisOp) SetLock(ctx context.Context) (value string, ok bool, err error) {
-	value = uuid.NewV4().String()
-	ok, err = b.redisCli.SetNX(ctx, b.key, value, b.ttl).Result()
-	if err != nil {
-		err = errors.Wrap(err, "BaseRedisOp SetLock")
-		return
-	}
-	return
-}
-
-// 分布式锁 延长锁
-func (b *baseRedisOp) ExtendLock(ctx context.Context, value string) (int64, error) {
-	resI, err := b.redisCli.Eval(ctx, extendLockScript, []string{b.key}, value, formatMs(b.ttl)).Result()
-	if err != nil {
-		err = errors.Wrap(err, "BaseRedisOp DelLock")
-		return 0, err
-	}
-	res, _ := resI.(int64)
-	if res == DelLockStatusNotOwn {
-		return res, DelLockStatusNotOwnErr
-	}
-	return res, nil
-}
-
-// 分布式锁 写入
-// value为uuid，ok为是否写入成功
-func (b *baseRedisOp) DelLock(ctx context.Context, value string) (int64, error) {
-	resI, err := b.redisCli.Eval(ctx, delLockScript, []string{b.key}, value).Result()
-	if err != nil {
-		err = errors.Wrap(err, "BaseRedisOp DelLock")
-		return 0, err
-	}
-
-	res, _ := resI.(int64)
-	switch res {
-	case DelLockStatusExpired:
-		return res, DelLockStatusExpiredErr
-	case DelLockStatusNotOwn:
-		return res, DelLockStatusNotOwnErr
-	}
-	return res, nil
-}
-
-// 基数统计 写入
-func (b *baseRedisOp) PFAdd(ctx context.Context, els ...interface{}) error {
-	_, err := b.redisCli.PFAdd(ctx, b.key, els...).Result()
-	if err != nil {
-		return errors.Wrap(err, "BaseRedisOp PfAdd")
-	}
-	return nil
-}
-
-// 基数统计 统计
-// key不存在 不会redis.Nil 无需判断IsNil
-func (b *baseRedisOp) PFCount(ctx context.Context) (count int64, err error) {
-	count, err = b.redisCli.PFCount(ctx, b.key).Result()
-	if err != nil {
-		err = errors.Wrap(err, "BaseRedisOp PFCount")
-	}
-	return
-}
-
-// 基数统计 统计
-// 把keys的数据 统计到b.key里
-func (b *baseRedisOp) PFMerge(ctx context.Context, keys ...string) error {
-	_, err := b.redisCli.PFMerge(ctx, b.key, keys...).Result()
-	if err != nil {
-		err = errors.Wrap(err, "BaseRedisOp PFMerge")
-	}
-	return err
 }
 
 // hash写入

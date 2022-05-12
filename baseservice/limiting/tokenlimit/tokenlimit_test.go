@@ -6,12 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chuan-fu/Common/util"
-
-	"github.com/chuan-fu/Common/db/redis"
-	log "github.com/chuan-fu/Common/zlog"
-
 	"github.com/chuan-fu/Common/cdao"
+	"github.com/chuan-fu/Common/db/redis"
+	"github.com/chuan-fu/Common/util"
+	"github.com/chuan-fu/Common/zlog"
 )
 
 func init() {
