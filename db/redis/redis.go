@@ -54,3 +54,16 @@ func ConnectRedis(conf RedisConf) error {
 	redisCli = rc
 	return nil
 }
+
+const (
+	Pong = "PONG"
+)
+
+func Ping(store redis.Cmdable) bool {
+	v, err := store.Ping(context.TODO()).Result()
+	if err != nil {
+		log.Error(err)
+		return false
+	}
+	return v == Pong
+}

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chuan-fu/Common/baseservice/mutex"
 	"github.com/chuan-fu/Common/db/redis"
-	"github.com/chuan-fu/Common/util/mutex"
 	"github.com/chuan-fu/Common/zlog"
 )
 

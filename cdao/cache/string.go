@@ -50,10 +50,8 @@ func GetBaseStringCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetStr
 		return "", errors.New("data为空，数据获取有误")
 	}
 
-	err = b.SetCache(ctx, op, data) // 写入cache
-	if err != nil {
-		log.Error(errors.Wrap(err, "SetCache"))
-		return data, nil
+	if err2 := b.SetCache(ctx, op, data); err2 != nil { // 写入cache
+		log.Error(errors.Wrap(err2, "SetCache"))
 	}
 	return
 }

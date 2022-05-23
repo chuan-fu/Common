@@ -1,7 +1,7 @@
 package cron
 
 import (
-	"github.com/chuan-fu/Common/util/mutex"
+	"github.com/chuan-fu/Common/baseservice/mutex"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/robfig/cron"
 )
@@ -28,7 +28,7 @@ func RunCronTask(tasks ...*cronTask) {
 			if v.onceKey != "" {
 				distributedOnce := mutex.NewDistributedOnce(v.onceKey, v.opts...)
 				return func() {
-					log.Infof("RunCronTask TaskRun spce:%s , name:%s", v.spec, v.name)
+					log.Infof("RunCronTask TaskRun once spce:%s , name:%s", v.spec, v.name)
 					distributedOnce.Do(v.cmd)
 				}
 			}

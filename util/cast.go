@@ -138,7 +138,6 @@ func ToString(v interface{}) string {
 		return ""
 	}
 	// 部分类型特殊处理
-	// 和cdao/internal.go:45里的反序列化相匹配，勿轻易修改
 	switch vt := v.(type) {
 	case []byte:
 		return BytesToString(vt)
@@ -147,7 +146,8 @@ func ToString(v interface{}) string {
 	case time.Duration:
 		return timeDurationToString(vt)
 
-		// 最常用的两个类型，手动转换
+	case string:
+		return vt
 	case int64:
 		return strconv.FormatInt(vt, 10)
 	case int:
@@ -159,8 +159,6 @@ func ToString(v interface{}) string {
 	case reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
 		d, _ := json.Marshal(v)
 		return BytesToString(d)
-	case reflect.String:
-		return rv.String()
 	default:
 		return fmt.Sprintf("%v", rv.Interface())
 	}

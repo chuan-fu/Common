@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
-	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5 // indirect
+	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129
 	github.com/apache/rocketmq-client-go/v2 v2.0.0
 	github.com/go-redis/redis/v8 v8.11.4
@@ -15,10 +15,10 @@ require (
 	github.com/rs/zerolog v1.26.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/spaolacci/murmur3 v1.1.0
-	go.uber.org/ratelimit v0.2.0
+	go.uber.org/goleak v1.1.11
 	go.uber.org/zap v1.20.0
 	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
-	golang.org/x/time v0.0.0-20220411224347-583f2d630306 // indirect
+	golang.org/x/time v0.0.0-20220411224347-583f2d630306
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0

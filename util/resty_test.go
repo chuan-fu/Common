@@ -14,7 +14,7 @@ func TestGet(t *testing.T) {
 	url := "http://goapi.dlab.cn/dpm/bms/station_letter/list"
 
 	var r Tools14
-	f := GetCheckRespFunc("Code", "Msg", 0)
+	f := NewCheckResp("Code", "Msg", 0)
 	_ = f
 	data, err := cli.PostCheckResult(context.TODO(), url, &Tools13{
 		PageIndex: 1,
@@ -57,4 +57,9 @@ type Message struct {
 	Msgtype int64  `json:"msgtype"`
 	Color   string `json:"color"`
 	Content string `json:"content"`
+}
+
+func TestExampleCheck(t *testing.T) {
+	fmt.Println(exampleCheckResp.Check(&exampleResp{Code: 0, Msg: "00"}))
+	fmt.Println(exampleCheckResp.Check(&exampleResp{Code: 1, Msg: "11"}))
 }

@@ -6,6 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	dbRedis "github.com/chuan-fu/Common/db/redis"
+
 	"github.com/chuan-fu/Common/util"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
@@ -85,11 +87,6 @@ redis.call("setex", KEYS[2], ttl, refreshed_at)
 return allowed`
 )
 
-type RedisCli interface {
-	Ping(ctx context.Context) bool
-	Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error)
-}
-
 const (
 	redisAliveNo  = 0
 	redisAliveYes = 1
@@ -100,7 +97,7 @@ type TokenLimiter struct {
 	per                    int            // 时间间隔
 	burst                  int            // 容量
 	ttl                    int            // 超时时间，设为填满桶时间的2倍
-	store                  RedisCli       // redisCli
+	store                  redis.Cmdable  // redisCli
 	tokenKey, timestampKey string         // redisKey
 	redisAlive             int32          // redis是否存活
 	pingInterval           time.Duration  // ping间隔
@@ -110,7 +107,7 @@ type TokenLimiter struct {
 // 令牌桶 默认使用Redis用作存储，为分布式令牌桶
 // 如Redis异常，则使用本地令牌桶，不会让服务出现单点问题，且继续提供服务
 // Redis异常后，会开启Redis存活校验，每隔pingInterval校验一次Redis，默认1s
-func NewTokenLimiter(rate, burst int, store RedisCli, key string, opts ...Option) *TokenLimiter {
+func NewTokenLimiter(rate, burst int, store redis.Cmdable, key string, opts ...Option) *TokenLimiter {
 	cfg := buildConfig(opts)
 	if rate < 1 || burst < 1 || burst < rate {
 		panic("per、rate、burst有误")
@@ -153,7 +150,7 @@ func (t *TokenLimiter) reserveN(ctx context.Context, now time.Time, n int) bool 
 		util.ToString(t.ttl),
 		util.ToString(now.Unix()),
 		util.ToString(n),
-	)
+	).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
 		log.Errorf("fail to use rate limiter: %s, use in-process limiter for rescue", err)
 		go t.pingRedis()
@@ -177,7 +174,7 @@ func (t *TokenLimiter) pingRedis() {
 	ticker := time.NewTicker(t.pingInterval)
 	defer ticker.Stop()
 	for range ticker.C {
-		if t.store.Ping(context.TODO()) {
+		if dbRedis.Ping(t.store) {
 			atomic.StoreInt32(&t.redisAlive, redisAliveYes)
 			return
 		}

@@ -27,7 +27,7 @@ func defaultGetByDB(db *gorm.DB, id int64) GetByDBFunc {
 type (
 	GetListByCacheFunc func(ctx context.Context, b cdao.BaseRedisOp, isAll bool, pageIndex, pageSize int64) ([]string, error)
 	SetListCacheFunc   func(ctx context.Context, b cdao.BaseRedisOp, v []string) error
-	GetListByDBFunc    func(ctx context.Context) (interface{}, error)
+	GetListByDBFunc    func(ctx context.Context) ([]string, error)
 
 	BaseListCacheOption func(*BaseListCacheOptions)
 )
@@ -70,21 +70,10 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListB
 		}
 	}
 
-	var data interface{}
-	data, err = getByDb(ctx) // 从db获取
+	resp, err = getByDb(ctx) // 从db获取
 	if err != nil {
 		log.Error(errors.Wrap(err, "GetByDB"))
 		return
-	}
-
-	var ok bool
-	resp, ok = data.([]string)
-	if !ok {
-		resp, err = toStringSlice(data)
-		if err != nil {
-			log.Error(errors.Wrap(err, "toStringSlice"))
-			return
-		}
 	}
 
 	// 写入Cache
@@ -95,7 +84,7 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListB
 	}
 	if err != nil {
 		log.Error(errors.Wrap(err, "SetCache"))
-		return
+		err = nil
 	}
 
 	if b.IsAll { // 返回所有

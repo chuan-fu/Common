@@ -74,7 +74,7 @@ func (c *Client) post(ctx context.Context, url string, body, result interface{})
 		return nil, errors.Wrap(err, "Post")
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("post: request error url:%s , code:%d , body:%s .", url, resp.StatusCode(), BytesToString(resp.Body()))
+		return nil, fmt.Errorf("post: request error url:%s , code:%d , body:%s", url, resp.StatusCode(), BytesToString(resp.Body()))
 	}
 	return resp.Body(), nil
 }
@@ -89,7 +89,7 @@ func (c *Client) get(ctx context.Context, url string, result interface{}) ([]byt
 		return nil, errors.Wrap(err, "Get")
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("get: request error url:%s , code:%d , body:%s .", url, resp.StatusCode(), BytesToString(resp.Body()))
+		return nil, fmt.Errorf("get: request error url:%s , code:%d , body:%s", url, resp.StatusCode(), BytesToString(resp.Body()))
 	}
 	return resp.Body(), nil
 }
@@ -102,10 +102,10 @@ func (c *Client) PostResult(ctx context.Context, url string, body, result interf
 	return c.post(ctx, url, body, result)
 }
 
-func (c *Client) PostCheckResult(ctx context.Context, url string, body, result interface{}, f CheckRespFunc) ([]byte, error) {
+func (c *Client) PostCheckResult(ctx context.Context, url string, body, result interface{}, check CheckTypeService) ([]byte, error) {
 	resp, err := c.post(ctx, url, body, result)
-	if err == nil && f != nil {
-		return resp, f(result)
+	if err == nil && check != nil {
+		return resp, check.Check(result)
 	}
 	return resp, err
 }
@@ -118,37 +118,59 @@ func (c *Client) GetResult(ctx context.Context, url string, result interface{}) 
 	return c.get(ctx, url, result)
 }
 
-func (c *Client) GetCheckResult(ctx context.Context, url string, result interface{}, f CheckRespFunc) ([]byte, error) {
+func (c *Client) GetCheckResult(ctx context.Context, url string, result interface{}, check CheckTypeService) ([]byte, error) {
 	resp, err := c.get(ctx, url, result)
-	if err == nil && f != nil {
-		return resp, f(result)
+	if err == nil && check != nil {
+		return resp, check.Check(result)
 	}
 	return resp, err
 }
 
-type CheckRespFunc func(resp interface{}) error
+type CheckTypeService interface {
+	Check(resp interface{}) error
+}
 
-func GetCheckRespFunc(codeKey, msgKey string, successCode int64) CheckRespFunc {
-	return func(resp interface{}) error {
-		if resp = Indirect(resp); resp == nil {
-			return errors.New("CheckRespFunc: resp is nil")
-		}
-		rt := reflect.TypeOf(resp)
-		rv := reflect.ValueOf(resp)
+type CheckResp struct {
+	codeKey, msgKey string
+	successCode     int64
+}
 
-		var code int64
-		var msg string
-		for i := 0; i < rt.NumField(); i++ {
-			switch rt.Field(i).Name {
-			case codeKey:
-				code = rv.Field(i).Int()
-			case msgKey:
-				msg = rv.Field(i).String()
-			}
-		}
-		if code != successCode {
-			return fmt.Errorf("CheckRespFunc: check error code:%d , msg:%s ", code, msg)
-		}
-		return nil
+// 是字段名称，不是tag，具体参考下面的example
+func NewCheckResp(codeKey, msgKey string, successCode int64) CheckTypeService {
+	return &CheckResp{
+		codeKey:     codeKey,
+		msgKey:      msgKey,
+		successCode: successCode,
 	}
 }
+
+func (c *CheckResp) Check(resp interface{}) error {
+	if resp = Indirect(resp); resp == nil {
+		return errors.New("CheckResp: resp is nil")
+	}
+	rt := reflect.TypeOf(resp)
+	rv := reflect.ValueOf(resp)
+
+	var code int64
+	var msg string
+	for i := 0; i < rt.NumField(); i++ {
+		switch rt.Field(i).Name {
+		case c.codeKey:
+			code = rv.Field(i).Int()
+		case c.msgKey:
+			msg = rv.Field(i).String()
+		}
+	}
+	if code != c.successCode {
+		return fmt.Errorf("CheckResp: check error code:%d , msg:%s , code should be %d", code, msg, c.successCode)
+	}
+	return nil
+}
+
+// example
+type exampleResp struct {
+	Code int64  `json:"code"`
+	Msg  string `json:"msg"`
+}
+
+var exampleCheckResp = NewCheckResp("Code", "Msg", 0)

@@ -6,7 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chuan-fu/Common/cdao"
+	"go.uber.org/goleak"
+
 	"github.com/chuan-fu/Common/db/redis"
 	"github.com/chuan-fu/Common/util"
 	"github.com/chuan-fu/Common/zlog"
@@ -22,7 +23,8 @@ func init() {
 }
 
 func TestNewTokenLimiter(t *testing.T) {
-	lim := NewTokenLimiter(10, 20, cdao.NewBaseRedisOp(), "token:limiter", WithPer(10*time.Second))
+	defer goleak.VerifyNone(t)
+	lim := NewTokenLimiter(10, 20, redis.GetRedisCli(), "token:limiter", WithPer(10*time.Second))
 	fmt.Printf("%+v", lim)
 	f := func() {
 		for i := 0; i < 2000; i++ {

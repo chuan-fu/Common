@@ -1,24 +1,22 @@
 package util
 
 import (
-	"fmt"
 	"runtime"
 	"runtime/debug"
 
 	"github.com/chuan-fu/Common/zlog"
-	"github.com/pkg/errors"
 )
 
 func DeferFunc() {
 	if e := recover(); e != nil {
-		var funcName string
-		pc, _, _, ok := runtime.Caller(1)
+		var file string
+		var line int
+		pc, _, _, ok := runtime.Caller(2)
 		if ok {
-			funcName = runtime.FuncForPC(pc).Name() // main.(*MyStruct).foo
+			file, line = runtime.FuncForPC(pc).FileLine(pc) // main.(*MyStruct).foo
 		}
-		err := errors.New(fmt.Sprintf("panic at(%v): %v", funcName, e))
-		log.Error(err)
-		log.Errorf(BytesToString(debug.Stack()))
+		log.Errorf("panic at(%s:%d): %v", file, line, ToString(e))
+		log.Error(BytesToString(debug.Stack()))
 	}
 }
 

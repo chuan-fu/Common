@@ -57,7 +57,7 @@ func GetBaseSetCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetSetByD
 	}
 	if err != nil {
 		log.Error(errors.Wrap(err, "SetCache"))
-		return
+		err = nil
 	}
 
 	return

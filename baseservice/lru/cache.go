@@ -12,7 +12,7 @@ type LruCache struct {
 	size int
 	list *list.List
 
-	cacheMap map[interface{}]*list.Element
+	cacheMap map[string]*list.Element
 	sync.RWMutex
 }
 
@@ -20,7 +20,7 @@ func NewLruCache(size int) *LruCache {
 	return &LruCache{
 		size:     size,
 		list:     list.New(),
-		cacheMap: make(map[interface{}]*list.Element, size),
+		cacheMap: make(map[string]*list.Element, size),
 	}
 }
 
@@ -45,14 +45,14 @@ func (l *LruCache) Set(k string, v interface{}) {
 }
 
 // 查询
-func (l *LruCache) Get(k string) (interface{}, bool) {
+func (l *LruCache) Get(k string) (*Entry, bool) {
 	l.Lock()
 	defer l.Unlock()
 
 	if node, ok := l.cacheMap[k]; ok {
 		l.list.MoveToFront(node)
 		e, _ := node.Value.(*Entry)
-		return e.v, true
+		return e, true
 	}
 	return nil, false
 }
@@ -103,4 +103,20 @@ func (e *Entry) K() interface{} {
 
 func (e *Entry) V() interface{} {
 	return e.v
+}
+
+func (e *Entry) StringV() string {
+	return util.ToString(e.v)
+}
+
+func (e *Entry) Int64V() (int64, error) {
+	return util.ToInt64I(e.v)
+}
+
+func (e *Entry) IntV() (int, error) {
+	return util.ToIntI(e.v)
+}
+
+func (e *Entry) Float64V() (float64, error) {
+	return util.ToFloat64I(e.v)
 }
