@@ -1,6 +1,7 @@
 package bloom
 
 import (
+	"github.com/chuan-fu/Common/util"
 	"github.com/go-redis/redis/v8"
 	"github.com/spaolacci/murmur3"
 )
@@ -34,27 +35,24 @@ func NewBloomFilter(store redis.Cmdable, key string, elements uint) *Bloom {
 	}
 }
 
+func (f *Bloom) AddStr(data string) (bool, error) {
+	return f.Add(util.StringToBytes(data))
+}
+
+func (f *Bloom) ExistsStr(data string) (bool, error) {
+	return f.Exists(util.StringToBytes(data))
+}
+
 // 添加元素
-func (f *Bloom) Add(data []byte) error {
+func (f *Bloom) Add(data []byte) (bool, error) {
 	locations := f.getLocations(data)
-	if err := f.bitSet.set(locations); err != nil {
-		return err
-	}
-	return nil
+	return f.bitSet.set(locations)
 }
 
 // 校验元素是否存在
 func (f *Bloom) Exists(data []byte) (bool, error) {
 	locations := f.getLocations(data)
-	isSet, err := f.bitSet.check(locations)
-	if err != nil {
-		return false, err
-	}
-	if !isSet {
-		return false, nil
-	}
-
-	return true, nil
+	return f.bitSet.check(locations)
 }
 
 func (f *Bloom) getLocations(data []byte) []uint {

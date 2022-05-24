@@ -4,8 +4,7 @@ import (
 	"context"
 	"time"
 
-	dbRedis "github.com/chuan-fu/Common/db/redis"
-
+	"github.com/chuan-fu/Common/db"
 	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
@@ -53,7 +52,7 @@ func NewRedisLock(key string, ttl time.Duration, opts ...Option) RedisLockOp {
 		opt(r)
 	}
 	if r.store == nil {
-		r.store = dbRedis.GetRedisCli()
+		r.store = db.GetRedisCli()
 	}
 	return r
 }

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	dbRedis "github.com/chuan-fu/Common/db/redis"
+	"github.com/chuan-fu/Common/db"
 	"github.com/chuan-fu/Common/util"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
@@ -35,7 +35,7 @@ func NewBaseRedisOp(key string, ttl time.Duration, opts ...RedisOption) BaseRedi
 		opt(r)
 	}
 	if r.store == nil {
-		r.store = dbRedis.GetRedisCli()
+		r.store = db.GetRedisCli()
 	}
 	return r
 }

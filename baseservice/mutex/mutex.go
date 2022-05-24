@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	dbRedis "github.com/chuan-fu/Common/db/redis"
+	"github.com/chuan-fu/Common/db"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
 )
@@ -63,7 +63,7 @@ func NewDistributedOnce(key string, opts ...Option) *distributedOnce {
 	}
 
 	if o.atomic == nil {
-		o.atomic = NewRedisAtomic(dbRedis.GetRedisCli())
+		o.atomic = NewRedisAtomic(db.GetRedisCli())
 	}
 
 	return o

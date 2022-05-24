@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	dbRedis "github.com/chuan-fu/Common/db/redis"
+	"github.com/chuan-fu/Common/db"
 	"github.com/chuan-fu/Common/util/batch"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
@@ -46,7 +46,7 @@ func NewHyperLogLog(key string, opts ...Option) HyperLogLogOp {
 		opt(h)
 	}
 	if h.store == nil {
-		h.store = dbRedis.GetRedisCli()
+		h.store = db.GetRedisCli()
 	}
 	return h
 }
