@@ -15,9 +15,9 @@ require (
 	github.com/rs/zerolog v1.26.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/spaolacci/murmur3 v1.1.0
-	go.uber.org/goleak v1.1.11
-	go.uber.org/zap v1.20.0
-	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
+	github.com/zeromicro/go-zero v1.3.3
+	go.uber.org/goleak v1.1.12
+	go.uber.org/zap v1.21.0
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
