@@ -71,7 +71,7 @@ func (t *atomicLimiter) Take() time.Time {
 	return t.TakeWithOpt(t.timeoutOpt)
 }
 
-func (t *atomicLimiter) TakeWithContext(ctx context.Context) time.Time {
+func (t *atomicLimiter) TakeWithContextDeadline(ctx context.Context) time.Time {
 	return t.TakeWithOpt(WithCtxTimeOutOption(ctx))
 }
 

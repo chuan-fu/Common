@@ -42,8 +42,8 @@ var (
 )
 
 type BitSetProvider interface {
-	check([]uint) (bool, error)
-	set([]uint) (bool, error)
+	check(ctx context.Context, offsets []uint) (bool, error)
+	set(ctx context.Context, offsets []uint) (bool, error)
 }
 
 type redisBitSet struct {
@@ -71,13 +71,13 @@ func (r *redisBitSet) buildOffsetArgs(offsets []uint) ([]string, error) {
 	return args, nil
 }
 
-func (r *redisBitSet) check(offsets []uint) (bool, error) {
+func (r *redisBitSet) check(ctx context.Context, offsets []uint) (bool, error) {
 	args, err := r.buildOffsetArgs(offsets)
 	if err != nil {
 		return false, err
 	}
 
-	result, err := r.rCli.Eval(context.Background(), checkScript, []string{r.key}, args).Result()
+	result, err := r.rCli.Eval(ctx, checkScript, []string{r.key}, args).Result()
 	if err != nil {
 		return false, err
 	}
@@ -89,12 +89,12 @@ func (r *redisBitSet) check(offsets []uint) (bool, error) {
 	}
 }
 
-func (r *redisBitSet) set(offsets []uint) (bool, error) {
+func (r *redisBitSet) set(ctx context.Context, offsets []uint) (bool, error) {
 	args, err := r.buildOffsetArgs(offsets)
 	if err != nil {
 		return false, err
 	}
-	result, err := r.rCli.Eval(context.Background(), setScript, []string{r.key}, args).Result()
+	result, err := r.rCli.Eval(ctx, setScript, []string{r.key}, args).Result()
 	if err != nil {
 		return false, err
 	}

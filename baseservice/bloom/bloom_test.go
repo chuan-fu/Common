@@ -1,6 +1,7 @@
 package bloom
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -19,15 +20,16 @@ func init() {
 }
 
 func TestNew(t *testing.T) {
+	ctx := context.Background()
 	b := NewBloomFilter(db.GetRedisCli(), "bloom:test:1", 1000)
-	fmt.Println(b.AddStr("Add1"))
-	fmt.Println(b.AddStr("Add501"))
-	fmt.Println(b.AddStr("Add503"))
+	fmt.Println(b.AddStr(ctx, "Add1"))
+	fmt.Println(b.AddStr(ctx, "Add501"))
+	fmt.Println(b.AddStr(ctx, "Add503"))
 	//for i := 0; i < 500; i++ {
 	//	fmt.Println(i, b.AddStr(fmt.Sprintf("Add%d", i)))
 	//}
 	for i := 480; i < 520; i++ {
 		fmt.Print(i)
-		fmt.Println(b.ExistsStr(fmt.Sprintf("Add%d", i)))
+		fmt.Println(b.ExistsStr(ctx, fmt.Sprintf("Add%d", i)))
 	}
 }

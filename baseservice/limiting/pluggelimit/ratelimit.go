@@ -36,7 +36,7 @@ import (
 type Limiter interface {
 	// Take should block to make sure that the RPS is met.
 	Take() time.Time
-	TakeWithContext(ctx context.Context) time.Time
+	TakeWithContextDeadline(ctx context.Context) time.Time // 仅支持带Deadline()的ctx
 	TakeWithTimeOut(timeout time.Duration) time.Time
 	TakeWithOpt(opt TimeOutOption) time.Time
 }
@@ -129,7 +129,7 @@ func (unlimited) Take() time.Time {
 	return time.Now()
 }
 
-func (unlimited) TakeWithContext(ctx context.Context) time.Time {
+func (unlimited) TakeWithContextDeadline(ctx context.Context) time.Time {
 	return time.Now()
 }
 
