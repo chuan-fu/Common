@@ -7,11 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/mr"
-
-	"github.com/pkg/errors"
-
 	log "github.com/chuan-fu/Common/zlog"
+	"github.com/pkg/errors"
 )
 
 func TestMr(t *testing.T) {
@@ -44,7 +41,7 @@ func TestMr2(t *testing.T) {
 	s.Add(1)
 	s.Done()
 	now := time.Now()
-	err := mr.Finish(func() (err error) {
+	err := Finish(func() (err error) {
 		time.Sleep(time.Second)
 		fmt.Println("1")
 		return
