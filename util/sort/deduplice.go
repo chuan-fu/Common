@@ -4,6 +4,7 @@ const (
 	two = 2
 )
 
+// 排序+去重
 func Deduplice(listInter interface{}) interface{} {
 	switch list := listInter.(type) {
 	case []int64:
@@ -28,7 +29,7 @@ func DedupliceInt64Index(list []int64) int {
 	if num < two {
 		return num
 	}
-	Int64(list)
+	Int64(list) // sort
 
 	index := 1
 	for i := 1; i < num; i++ {
@@ -49,7 +50,7 @@ func DedupliceIntIndex(list []int) int {
 	if num < two {
 		return num
 	}
-	Int(list)
+	Int(list) // sort
 
 	index := 1
 	for i := 1; i < num; i++ {
@@ -70,7 +71,7 @@ func DedupliceFloat64Index(list []float64) int {
 	if num < two {
 		return num
 	}
-	Float64(list)
+	Float64(list) // sort
 
 	index := 1
 	for i := 1; i < num; i++ {
@@ -91,7 +92,7 @@ func DedupliceStringIndex(list []string) int {
 	if num < two {
 		return num
 	}
-	String(list)
+	String(list) // sort
 
 	index := 1
 	for i := 1; i < num; i++ {

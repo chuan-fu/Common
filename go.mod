@@ -9,6 +9,7 @@ require (
 	github.com/apache/rocketmq-client-go/v2 v2.0.0
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/jinzhu/configor v1.2.1
+	github.com/panjf2000/ants/v2 v2.5.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/robertkrimen/otto v0.0.0-20211024170158-b87d35c0b86f
 	github.com/robfig/cron v1.2.0

@@ -26,7 +26,7 @@ func TestMr(t *testing.T) {
 	}, func() (err error) {
 		time.Sleep(2 * time.Second)
 		fmt.Println("2")
-		return errors.New("err2")
+		return
 	}, func() (err error) {
 		time.Sleep(3 * time.Second)
 		fmt.Println("3")
