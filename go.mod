@@ -4,6 +4,11 @@ go 1.16
 
 // github.com/zeromicro/go-zero
 
+replace (
+	github.com/tidwall/gjson => github.com/tidwall/gjson v1.9.3
+	github.com/tidwall/match => github.com/tidwall/match v1.0.3
+)
+
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
@@ -24,7 +29,6 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spaolacci/murmur3 v1.1.0
-	github.com/tidwall/pretty v1.0.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/goleak v1.1.12
 	go.uber.org/multierr v1.8.0 // indirect
