@@ -1,10 +1,13 @@
-package mr
+package antsmr
 
 import (
 	"context"
 	"errors"
 	"sync"
 	"sync/atomic"
+
+	"github.com/chuan-fu/Common/baseservice/ants"
+	"github.com/chuan-fu/Common/baseservice/mr"
 )
 
 const (
@@ -44,7 +47,7 @@ type (
 		source    <-chan interface{}
 		panicChan *onceChan
 		collector chan<- interface{}
-		doneChan  <-chan PlaceholderType
+		doneChan  <-chan mr.PlaceholderType
 		workers   int
 	}
 
@@ -124,18 +127,20 @@ func ForEach(generate GenerateFunc, mapper ForEachFunc, opts ...Option) {
 	panicChan := &onceChan{channel: make(chan interface{})}
 	source := buildSource(generate, panicChan)
 	collector := make(chan interface{}, options.workers)
-	done := make(chan PlaceholderType)
+	done := make(chan mr.PlaceholderType)
 
-	go executeMappers(mapperContext{
-		ctx: options.ctx,
-		mapper: func(item interface{}, writer Writer) {
-			mapper(item)
-		},
-		source:    source,
-		panicChan: panicChan,
-		collector: collector,
-		doneChan:  done,
-		workers:   options.workers,
+	ants.GoGo(func() {
+		executeMappers(mapperContext{
+			ctx: options.ctx,
+			mapper: func(item interface{}, writer Writer) {
+				mapper(item)
+			},
+			source:    source,
+			panicChan: panicChan,
+			collector: collector,
+			doneChan:  done,
+			workers:   options.workers,
+		})
 	})
 
 	for {
@@ -182,11 +187,11 @@ func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapp
 	// collector is used to collect data from mapper, and consume in reducer
 	collector := make(chan interface{}, options.workers)
 	// if done is closed, all mappers and reducer should stop processing
-	done := make(chan PlaceholderType)
+	done := make(chan mr.PlaceholderType)
 	writer := newGuardedWriter(options.ctx, output, done)
 	var closeOnce sync.Once
 	// use atomic.Value to avoid data race
-	var retErr AtomicError
+	var retErr mr.AtomicError
 	finish := func() {
 		closeOnce.Do(func() {
 			close(done)
@@ -204,7 +209,7 @@ func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapp
 		finish()
 	})
 
-	go func() {
+	ants.GoGo(func() {
 		defer func() {
 			drain(collector)
 			if r := recover(); r != nil {
@@ -214,18 +219,20 @@ func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapp
 		}()
 
 		reducer(collector, writer, cancel)
-	}()
+	})
 
-	go executeMappers(mapperContext{
-		ctx: options.ctx,
-		mapper: func(item interface{}, w Writer) {
-			mapper(item, w, cancel)
-		},
-		source:    source,
-		panicChan: panicChan,
-		collector: collector,
-		doneChan:  done,
-		workers:   options.workers,
+	ants.GoGo(func() {
+		executeMappers(mapperContext{
+			ctx: options.ctx,
+			mapper: func(item interface{}, w Writer) {
+				mapper(item, w, cancel)
+			},
+			source:    source,
+			panicChan: panicChan,
+			collector: collector,
+			doneChan:  done,
+			workers:   options.workers,
+		})
 	})
 
 	select {
@@ -289,7 +296,7 @@ func buildOptions(opts ...Option) *mapReduceOptions {
 
 func buildSource(generate GenerateFunc, panicChan *onceChan) chan interface{} {
 	source := make(chan interface{})
-	go func() {
+	ants.GoGo(func() {
 		defer func() {
 			if r := recover(); r != nil {
 				panicChan.write(r)
@@ -298,7 +305,7 @@ func buildSource(generate GenerateFunc, panicChan *onceChan) chan interface{} {
 		}()
 
 		generate(source)
-	}()
+	})
 
 	return source
 }
@@ -319,7 +326,7 @@ func executeMappers(mCtx mapperContext) {
 	}()
 
 	var failed int32
-	pool := make(chan PlaceholderType, mCtx.workers) // pool没有关闭？
+	pool := make(chan mr.PlaceholderType, mCtx.workers) // pool没有关闭？
 	defer close(pool)
 
 	writer := newGuardedWriter(mCtx.ctx, mCtx.collector, mCtx.doneChan)
@@ -329,7 +336,7 @@ func executeMappers(mCtx mapperContext) {
 			return
 		case <-mCtx.doneChan:
 			return
-		case pool <- Placeholder:
+		case pool <- mr.Placeholder:
 			// pool的容量为workers，可以小于并行数，用来控制并发量
 			// 如果pool满了，说明到达上限，而且还没执行完毕，等待执行结束的任务
 			// 所以workers的数量可以作为参数传入
@@ -340,7 +347,7 @@ func executeMappers(mCtx mapperContext) {
 			}
 
 			wg.Add(1)
-			go func() {
+			ants.GoGo(func() {
 				defer func() {
 					if r := recover(); r != nil {
 						atomic.AddInt32(&failed, 1)
@@ -351,7 +358,7 @@ func executeMappers(mCtx mapperContext) {
 				}()
 
 				mCtx.mapper(item, writer)
-			}()
+			})
 		}
 	}
 }
@@ -375,11 +382,11 @@ func once(fn func(error)) func(error) {
 type guardedWriter struct {
 	ctx     context.Context
 	channel chan<- interface{}
-	done    <-chan PlaceholderType
+	done    <-chan mr.PlaceholderType
 }
 
 func newGuardedWriter(ctx context.Context, channel chan<- interface{},
-	done <-chan PlaceholderType) guardedWriter {
+	done <-chan mr.PlaceholderType) guardedWriter {
 	return guardedWriter{
 		ctx:     ctx,
 		channel: channel,

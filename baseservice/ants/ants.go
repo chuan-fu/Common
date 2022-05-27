@@ -36,7 +36,7 @@ func NewGlobalPool(size int) {
 type Task func() (err error)
 
 // 使用
-func Go(f Task) error {
+func Go(f func() error) error {
 	if globalAnts == nil {
 		return errors.New("globalAnts is nil")
 	}
@@ -50,9 +50,18 @@ func Go(f Task) error {
 	return nil
 }
 
-func GoVoid(f Task) {
+func GoVoid(f func() error) {
 	if err := Go(f); err != nil {
 		log.Error(err)
+	}
+}
+
+func GoGo(f func()) {
+	if globalAnts == nil {
+		log.Error(errors.New("globalAnts is nil"))
+	}
+	if err := globalAnts.Submit(f); err != nil {
+		log.Error(errors.Wrap(err, "globalAnts Submit error"))
 	}
 }
 

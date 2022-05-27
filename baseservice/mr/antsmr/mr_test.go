@@ -1,16 +1,18 @@
-package mr
+package antsmr
 
 import (
 	"context"
 	"fmt"
-	"sync"
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
-
+	"github.com/chuan-fu/Common/baseservice/ants"
 	log "github.com/chuan-fu/Common/zlog"
 )
+
+func init() {
+	ants.NewGlobalPool(10000)
+}
 
 func TestMr(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -38,9 +40,6 @@ func TestMr(t *testing.T) {
 }
 
 func TestMr2(t *testing.T) {
-	s := sync.WaitGroup{}
-	s.Add(1)
-	s.Done()
 	now := time.Now()
 	err := Finish(func() (err error) {
 		time.Sleep(time.Second)
@@ -49,8 +48,8 @@ func TestMr2(t *testing.T) {
 	}, func() (err error) {
 		time.Sleep(2 * time.Second)
 		fmt.Println("2")
-		// return nil
-		return errors.New("err2")
+		return nil
+		// return errors.New("err2")
 	}, func() (err error) {
 		time.Sleep(3 * time.Second)
 		fmt.Println("3")
