@@ -7,9 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chuan-fu/Common/zlog"
 	"github.com/pkg/errors"
-
-	log "github.com/chuan-fu/Common/zlog"
 )
 
 func TestMr(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/chuan-fu/Common/baseservice/ants"
-	log "github.com/chuan-fu/Common/zlog"
+	"github.com/chuan-fu/Common/zlog"
 )
 
 func init() {

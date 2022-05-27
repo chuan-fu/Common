@@ -3,10 +3,9 @@ package cache
 import (
 	"context"
 
-	log "github.com/chuan-fu/Common/zlog"
-	"github.com/pkg/errors"
-
 	"github.com/chuan-fu/Common/cdao"
+	"github.com/chuan-fu/Common/zlog"
+	"github.com/pkg/errors"
 )
 
 type (

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/apache/rocketmq-client-go/v2/primitive"
-	log "github.com/chuan-fu/Common/zlog"
+	"github.com/chuan-fu/Common/zlog"
 )
 
 func TestProducer1(t *testing.T) {
