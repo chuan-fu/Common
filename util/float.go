@@ -27,3 +27,10 @@ func RoundTwo2(value float64) float64 {
 	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
 	return value
 }
+
+func RoundFloat64(x float64) int64 {
+	if x >= 0 {
+		return int64(math.Floor(x + 0.50001))
+	}
+	return int64(math.Floor(x + 0.49999))
+}

@@ -22,3 +22,24 @@ func TestRounding(t *testing.T) {
 
 	fmt.Println(RoundingTwo(0))
 }
+
+func TestRound(t *testing.T) {
+	fmt.Println(RoundFloat64(0))
+	fmt.Println(RoundFloat64(0.00001))
+	fmt.Println(RoundFloat64(0.5))
+	fmt.Println(RoundFloat64(0.4))
+	fmt.Println(RoundFloat64(1.499999999))
+	fmt.Println(RoundFloat64(1.500000001))
+	fmt.Println(RoundFloat64(1.45))
+	fmt.Println(RoundFloat64(1.55))
+}
+
+func TestRound2(t *testing.T) {
+	fmt.Println(RoundFloat64(-0.0001))
+	fmt.Println(RoundFloat64(-0.5))
+	fmt.Println(RoundFloat64(-0.4))
+	fmt.Println(RoundFloat64(-1.499999999))
+	fmt.Println(RoundFloat64(-1.500000001))
+	fmt.Println(RoundFloat64(-1.45))
+	fmt.Println(RoundFloat64(-1.55))
+}

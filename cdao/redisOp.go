@@ -255,6 +255,59 @@ func (r *baseRedisOp) HGet(ctx context.Context, key string) (string, error) {
 	return val, nil
 }
 
+func (b *baseRedisOp) SetBits(ctx context.Context, value []int64) error {
+	keys := []string{b.key}
+	if t := formatSec(b.ttl); t > 0 {
+		keys = append(keys, util.ToString(t))
+	}
+	args := make([]interface{}, 0, len(value))
+	for _, v := range value {
+		if v >= 0 { // 下标不能为负数，数组越界
+			args = append(args, util.ToString(v))
+		}
+	}
+	_, err := b.store.Eval(ctx, setBitsScript, keys, args...).Result()
+	if err != nil {
+		return errors.Wrap(err, "BaseRedisOp SetBits")
+	}
+	return nil
+}
+
+func (b *baseRedisOp) GetBits(ctx context.Context, value []int64) (resp map[int64]struct{}, exists bool, err error) {
+	resp = make(map[int64]struct{})
+
+	argsInt64 := make([]int64, 0, len(value))
+	args := make([]interface{}, 0, len(value))
+	for _, v := range value {
+		if v >= 0 { // 下标不能为负数，数组越界
+			args = append(args, util.ToString(v))
+			argsInt64 = append(argsInt64, v)
+		}
+	}
+	if len(args) == 0 {
+		err = errors.New("value有误")
+		return
+	}
+
+	dataInter, err := b.store.Eval(ctx, getBitsScript, []string{b.key}, args...).Result()
+	if err != nil && !IsRedisNil(err) {
+		log.Error(err)
+		return
+	}
+	if IsRedisNil(err) {
+		return resp, false, nil
+	}
+
+	data, _ := dataInter.([]interface{})
+	for k, vInter := range data {
+		v, _ := vInter.(int64)
+		if v == 1 {
+			resp[argsInt64[k]] = struct{}{}
+		}
+	}
+	return resp, true, nil
+}
+
 func IsRedisNil(err error) bool {
 	return errors.Is(err, redis.Nil)
 }

@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/chuan-fu/Common/baseservice/batch"
 	"github.com/chuan-fu/Common/db"
-	"github.com/chuan-fu/Common/util/batch"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"

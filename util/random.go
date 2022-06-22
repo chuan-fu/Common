@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	UpperLetter = 1 << iota // 大写字母
-	LowerLetter             // 小写字母
-	Number                  // 数字
-	SpecialChar             // 特殊字符
+	UpperLetter = 1 << iota // 1 大写字母
+	LowerLetter             // 2 小写字母
+	Number                  // 4 数字
+	SpecialChar             // 8 特殊字符
 )
 
 const (

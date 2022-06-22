@@ -80,3 +80,15 @@ func TestTTL(t *testing.T) {
 	fmt.Println(data)
 	fmt.Println(int64(data / time.Second))
 }
+
+func TestSetBits(t *testing.T) {
+	err := NewBaseRedisOp("key:setbits:1", time.Hour).SetBits(context.TODO(), []int64{1, 2, 3, 5, 7, -1, 10000, 1231})
+	if err != nil {
+		log.Error(err)
+		return
+	}
+}
+
+func TestGetBits(t *testing.T) {
+	fmt.Println(NewBaseRedisOp("key:setbits:1", time.Hour).GetBits(context.TODO(), []int64{-1, -2, 0, 1, 2, 3, 4, 5, 6, 7, 1231, 1111}))
+}
