@@ -2,11 +2,11 @@ package cdao
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
+	"github.com/chuan-fu/Common/baseservice/jsonx"
+
 	"github.com/chuan-fu/Common/baseservice/cast"
-	"github.com/chuan-fu/Common/baseservice/stringx"
 	"github.com/chuan-fu/Common/db"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
@@ -97,7 +97,7 @@ func (b *baseRedisOp) GetResult(ctx context.Context, v interface{}) error {
 		return nil
 	}
 	log.Debugf("cache【%s】存在", b.key)
-	return json.Unmarshal(stringx.StringToBytes(data), v)
+	return jsonx.Unmarshal(data, v)
 }
 
 func (b *baseRedisOp) Exists(ctx context.Context) (bool, error) {

@@ -2,14 +2,10 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"reflect"
 
 	"github.com/chuan-fu/Common/baseservice/jsonx"
-
-	"github.com/chuan-fu/Common/baseservice/stringx"
-
 	"github.com/chuan-fu/Common/cdao"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/pkg/errors"
@@ -58,7 +54,7 @@ func GetBaseJsonCache(ctx context.Context, op cdao.BaseRedisOp, model interface{
 		log.Error(errors.Wrap(err, "GetByCache"))
 	}
 	if data != "" {
-		if err = json.Unmarshal(stringx.StringToBytes(data), b.Model); err == nil { // 解析model并返回
+		if err = jsonx.UnmarshalObj(data, b.Model); err == nil { // 解析model并返回
 			return data, nil
 		}
 

@@ -2,10 +2,11 @@ package cdao
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/chuan-fu/Common/baseservice/jsonx"
 
 	"github.com/chuan-fu/Common/baseservice/cast"
 
@@ -57,7 +58,7 @@ func TestAA(t *testing.T) {
 	// b := []string{"v", "a"}
 
 	bb := make([]byte, 0)
-	err := json.Unmarshal([]byte(b), &bb)
+	err := jsonx.Unmarshal(b, &bb)
 	if err != nil {
 		log.Error(err)
 		return

@@ -1,10 +1,11 @@
 package cast
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
+
+	"github.com/chuan-fu/Common/baseservice/jsonx"
 
 	"github.com/chuan-fu/Common/baseservice/stringx"
 	"github.com/pkg/errors"
@@ -181,8 +182,7 @@ func ToString(v interface{}) string {
 	rv := reflect.ValueOf(v)
 	switch rv.Kind() {
 	case reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
-		d, _ := json.Marshal(v)
-		return stringx.BytesToString(d)
+		return jsonx.Marshal(v)
 	default:
 		return fmt.Sprintf("%v", rv.Interface())
 	}
