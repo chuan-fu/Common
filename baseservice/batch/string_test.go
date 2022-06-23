@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chuan-fu/Common/util"
+	"github.com/chuan-fu/Common/baseservice/cast"
 )
 
 func TestString(t *testing.T) {
@@ -16,12 +16,12 @@ func TestString(t *testing.T) {
 
 	for i := 0; i < 1000; i++ {
 		time.Sleep(10 * time.Millisecond * time.Duration(i%10))
-		s.Add(util.ToString(i + 1))
+		s.Add(cast.ToString(i + 1))
 	}
 	time.Sleep(time.Second * 10)
 	for i := 1000; i < 2000; i++ {
 		time.Sleep(5 * time.Millisecond * time.Duration(i%10))
-		s.Add(util.ToString(i + 1))
+		s.Add(cast.ToString(i + 1))
 	}
 	time.Sleep(time.Second * 10)
 }

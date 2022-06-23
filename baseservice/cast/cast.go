@@ -1,19 +1,54 @@
-package util
+package cast
 
 import (
 	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
-	"time"
 
+	"github.com/chuan-fu/Common/baseservice/stringx"
 	"github.com/pkg/errors"
 )
 
-func ToIntI(v interface{}) (int, error) {
-	if v = Indirect(v); v == nil {
-		return 0, errors.New("ToIntI: unable to ToIntI(nil)")
+const (
+	Int64Base  = 10
+	NumBitSize = 64
+)
+
+func ToInt(s string) (int, error) {
+	if s == "" {
+		return 0, errors.New(`ToInt: unable to ToInt("")`)
 	}
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, errors.Wrap(err, "ToInt")
+	}
+	return i, nil
+}
+
+func ToInt64(s string) (int64, error) {
+	if s == "" {
+		return 0, errors.New(`ToInt64: unable to ToInt64("")`)
+	}
+	i, err := strconv.ParseInt(s, Int64Base, NumBitSize)
+	if err != nil {
+		return 0, errors.Wrap(err, "ToInt64")
+	}
+	return i, nil
+}
+
+func ToFloat(s string) (float64, error) {
+	if s == "" {
+		return 0, errors.New(`ToFloat: unable to ToFloat("")`)
+	}
+	i, err := strconv.ParseFloat(s, NumBitSize)
+	if err != nil {
+		return 0, errors.Wrap(err, "ToFloat")
+	}
+	return i, nil
+}
+
+func ToIntI(v interface{}) (int, error) {
 	switch s := v.(type) {
 	case int:
 		return s, nil
@@ -52,9 +87,6 @@ func ToIntI(v interface{}) (int, error) {
 }
 
 func ToInt64I(v interface{}) (int64, error) {
-	if v = Indirect(v); v == nil {
-		return 0, errors.New("ToInt64I: unable to ToInt64I(nil)")
-	}
 	switch s := v.(type) {
 	case int64:
 		return s, nil
@@ -93,9 +125,6 @@ func ToInt64I(v interface{}) (int64, error) {
 }
 
 func ToFloat64I(v interface{}) (float64, error) {
-	if v = Indirect(v); v == nil {
-		return 0, errors.New("ToFloat64I: unable to ToFloat64I(nil)")
-	}
 	switch s := v.(type) {
 	case float64:
 		return s, nil
@@ -140,16 +169,11 @@ func ToString(v interface{}) string {
 	// 部分类型特殊处理
 	switch vt := v.(type) {
 	case []byte:
-		return BytesToString(vt)
-	case time.Time:
-		return vt.Format(time.RFC3339Nano)
-	case time.Duration:
-		return timeDurationToString(vt)
-
+		return stringx.BytesToString(vt)
 	case string:
 		return vt
 	case int64:
-		return strconv.FormatInt(vt, 10)
+		return strconv.FormatInt(vt, Int64Base)
 	case int:
 		return strconv.Itoa(vt)
 	}
@@ -158,27 +182,20 @@ func ToString(v interface{}) string {
 	switch rv.Kind() {
 	case reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
 		d, _ := json.Marshal(v)
-		return BytesToString(d)
+		return stringx.BytesToString(d)
 	default:
 		return fmt.Sprintf("%v", rv.Interface())
 	}
 }
 
-func timeDurationToString(vt time.Duration) string {
-	if vt%time.Hour == 0 {
-		return fmt.Sprintf("%dh", vt/time.Hour)
+// 返回非指针类型【取地址】
+func Indirect(v interface{}) interface{} {
+	if v == nil {
+		return nil
 	}
-	if vt%time.Minute == 0 {
-		return fmt.Sprintf("%dm", vt/time.Minute)
+	rv := reflect.ValueOf(v)
+	for rv.Kind() == reflect.Ptr && !rv.IsNil() {
+		rv = rv.Elem()
 	}
-	if vt%time.Second == 0 {
-		return fmt.Sprintf("%ds", vt/time.Second)
-	}
-	if vt%time.Millisecond == 0 {
-		return fmt.Sprintf("%dms", vt/time.Millisecond)
-	}
-	if vt%time.Microsecond == 0 {
-		return fmt.Sprintf("%dµs", vt/time.Microsecond)
-	}
-	return fmt.Sprintf("%dns", vt/time.Nanosecond)
+	return rv.Interface()
 }

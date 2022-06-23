@@ -4,9 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
+
+	"github.com/chuan-fu/Common/baseservice/jsonx"
+
+	"github.com/chuan-fu/Common/baseservice/stringx"
 
 	"github.com/chuan-fu/Common/cdao"
-	"github.com/chuan-fu/Common/util"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/pkg/errors"
 )
@@ -33,7 +37,7 @@ type (
 )
 
 func GetBaseJsonCache(ctx context.Context, op cdao.BaseRedisOp, model interface{}, getByDb GetJsonByDBFunc, opts ...BaseJsonCacheOption) (data string, err error) {
-	if !util.IsPtr(model) {
+	if reflect.TypeOf(model).Kind() != reflect.Ptr {
 		err = errors.New("Model需要为指针")
 		return
 	}
@@ -54,7 +58,7 @@ func GetBaseJsonCache(ctx context.Context, op cdao.BaseRedisOp, model interface{
 		log.Error(errors.Wrap(err, "GetByCache"))
 	}
 	if data != "" {
-		if err = json.Unmarshal(util.StringToBytes(data), b.Model); err == nil { // 解析model并返回
+		if err = json.Unmarshal(stringx.StringToBytes(data), b.Model); err == nil { // 解析model并返回
 			return data, nil
 		}
 
@@ -72,8 +76,7 @@ func GetBaseJsonCache(ctx context.Context, op cdao.BaseRedisOp, model interface{
 	}
 
 	if data == "" {
-		dataByte, _ := json.Marshal(b.Model)
-		data = util.BytesToString(dataByte)
+		data = jsonx.MarshalObj(b.Model)
 	}
 
 	err = b.SetCache(ctx, op, data) // 写入cache

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/chuan-fu/Common/util"
+	"github.com/chuan-fu/Common/baseservice/cast"
 )
 
 func TestLru(t *testing.T) {
@@ -16,10 +16,10 @@ func TestLru(t *testing.T) {
 	}
 
 	for i := 0; i < 25; i++ {
-		l.Set(util.ToString(i), fmt.Sprintf("Vaule:%d", i))
+		l.Set(cast.ToString(i), fmt.Sprintf("Vaule:%d", i))
 	}
 	for i := 25; i > 18; i-- {
-		l.Set(util.ToString(i), fmt.Sprintf("Vaule2:%d", i))
+		l.Set(cast.ToString(i), fmt.Sprintf("Vaule2:%d", i))
 	}
 	fmt.Println("=====top=====")
 	top = l.Top(0)

@@ -5,6 +5,10 @@ import (
 	"runtime"
 	"runtime/debug"
 
+	"github.com/chuan-fu/Common/baseservice/cast"
+
+	"github.com/chuan-fu/Common/baseservice/stringx"
+
 	"github.com/chuan-fu/Common/zlog"
 )
 
@@ -21,8 +25,8 @@ func DeferFuncLog(e interface{}) {
 	if ok {
 		file, line = runtime.FuncForPC(pc).FileLine(pc) // main.(*MyStruct).foo
 	}
-	log.Errorf("panic at(%s:%d): %v", file, line, ToString(e))
-	log.Error(BytesToString(debug.Stack()))
+	log.Errorf("panic at(%s:%d): %v", file, line, cast.ToString(e))
+	log.Error(stringx.BytesToString(debug.Stack()))
 }
 
 func Go(f func()) {
@@ -49,6 +53,6 @@ func NewPanicError(e interface{}) error {
 	}
 	return &PanicError{
 		value: fmt.Sprintf("panic at(%s:%d): %v", file, line, e),
-		stack: BytesToString(debug.Stack()),
+		stack: stringx.BytesToString(debug.Stack()),
 	}
 }

@@ -7,8 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chuan-fu/Common/baseservice/cast"
+
 	"github.com/chuan-fu/Common/db/redis"
-	"github.com/chuan-fu/Common/util"
 	"github.com/chuan-fu/Common/zlog"
 )
 
@@ -62,7 +63,7 @@ func TestAA(t *testing.T) {
 		return
 	}
 	fmt.Println(bb)
-	fmt.Println(util.ToString(bb))
+	fmt.Println(cast.ToString(bb))
 }
 
 func TestTime(t *testing.T) {

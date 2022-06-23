@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/chuan-fu/Common/baseservice/cast"
+	"github.com/chuan-fu/Common/baseservice/stringx"
 	"github.com/chuan-fu/Common/db"
-	"github.com/chuan-fu/Common/util"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
@@ -96,7 +97,7 @@ func (b *baseRedisOp) GetResult(ctx context.Context, v interface{}) error {
 		return nil
 	}
 	log.Debugf("cache【%s】存在", b.key)
-	return json.Unmarshal(util.StringToBytes(data), v)
+	return json.Unmarshal(stringx.StringToBytes(data), v)
 }
 
 func (b *baseRedisOp) Exists(ctx context.Context) (bool, error) {
@@ -139,7 +140,7 @@ func (b *baseRedisOp) ZAddCoverStringList(ctx context.Context, list []string) er
 
 	keys := []string{b.key}
 	if t := formatSec(b.ttl); t > 0 {
-		keys = append(keys, util.ToString(t))
+		keys = append(keys, cast.ToString(t))
 	}
 	args := make([]interface{}, 0, 2*len(list))
 	for k := range list {
@@ -166,7 +167,7 @@ func (b *baseRedisOp) ZGetAll(ctx context.Context) ([]string, error) {
 	dataList, _ := dataInter.([]interface{})
 	data := make([]string, 0, len(dataList))
 	for k := range dataList {
-		data = append(data, util.ToString(dataList[k]))
+		data = append(data, cast.ToString(dataList[k]))
 	}
 	return data, nil
 }
@@ -199,7 +200,7 @@ func (b *baseRedisOp) SAddCover(ctx context.Context, list []string) error {
 	}
 	keys := []string{b.key}
 	if t := formatSec(b.ttl); t > 0 {
-		keys = append(keys, util.ToString(t))
+		keys = append(keys, cast.ToString(t))
 	}
 	args := make([]interface{}, len(list))
 	for k := range list {
@@ -227,11 +228,11 @@ func (r *baseRedisOp) HSetMap(ctx context.Context, m map[string]interface{}) err
 
 	keys := []string{r.key}
 	if t := formatSec(r.ttl); t > 0 {
-		keys = append(keys, util.ToString(t))
+		keys = append(keys, cast.ToString(t))
 	}
 	args := make([]interface{}, 0, 2*len(m))
 	for k, v := range m {
-		args = append(args, k, util.ToString(v))
+		args = append(args, k, cast.ToString(v))
 	}
 	if _, err := r.store.Eval(ctx, hmsetScript, keys, args...).Result(); err != nil && !IsRedisNil(err) {
 		return errors.Wrap(err, "BaseRedisOp HSetMap")
@@ -258,12 +259,12 @@ func (r *baseRedisOp) HGet(ctx context.Context, key string) (string, error) {
 func (b *baseRedisOp) SetBits(ctx context.Context, value []int64) error {
 	keys := []string{b.key}
 	if t := formatSec(b.ttl); t > 0 {
-		keys = append(keys, util.ToString(t))
+		keys = append(keys, cast.ToString(t))
 	}
 	args := make([]interface{}, 0, len(value))
 	for _, v := range value {
 		if v >= 0 { // 下标不能为负数，数组越界
-			args = append(args, util.ToString(v))
+			args = append(args, cast.ToString(v))
 		}
 	}
 	_, err := b.store.Eval(ctx, setBitsScript, keys, args...).Result()
@@ -280,7 +281,7 @@ func (b *baseRedisOp) GetBits(ctx context.Context, value []int64) (resp map[int6
 	args := make([]interface{}, 0, len(value))
 	for _, v := range value {
 		if v >= 0 { // 下标不能为负数，数组越界
-			args = append(args, util.ToString(v))
+			args = append(args, cast.ToString(v))
 			argsInt64 = append(argsInt64, v)
 		}
 	}

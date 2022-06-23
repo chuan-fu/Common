@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chuan-fu/Common/util"
+	"github.com/chuan-fu/Common/baseservice/cast"
 
 	"github.com/chuan-fu/Common/db/redis"
 	"github.com/chuan-fu/Common/zlog"
@@ -25,7 +25,7 @@ func TestAdd(t *testing.T) {
 	h := NewHyperLogLog("pf:add:5", WithBatch(time.Second, 20))
 	for i := 1; i <= 1000; i++ {
 		time.Sleep(time.Millisecond * time.Duration(i%10))
-		_ = h.AsynAdd(util.ToString(i))
+		_ = h.AsynAdd(cast.ToString(i))
 	}
 	time.Sleep(time.Second)
 	fmt.Println(h.Count(context.TODO()))

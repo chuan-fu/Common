@@ -1,4 +1,4 @@
-package util
+package filex
 
 import (
 	"fmt"

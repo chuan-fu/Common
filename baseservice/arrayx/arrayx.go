@@ -1,9 +1,12 @@
-package util
+package arrayx
 
 import (
 	"bytes"
 	"strconv"
-	"unsafe"
+)
+
+const (
+	Int64Base = 10
 )
 
 func IsInArray(s int64, array []int64) bool {
@@ -15,38 +18,13 @@ func IsInArray(s int64, array []int64) bool {
 	return false
 }
 
-func IsInStrArray(key string, list []string) bool {
+func IsInStringArray(key string, list []string) bool {
 	for _, v := range list {
 		if v == key {
 			return true
 		}
 	}
 	return false
-}
-
-func StringToBytes(s string) []byte {
-	return *(*[]byte)(unsafe.Pointer(
-		&struct {
-			string
-			Cap int
-		}{s, len(s)},
-	))
-}
-
-func BytesToString(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-
-func ConvertToIntArray(arr []string) ([]int, bool) {
-	result := make([]int, 0)
-	for _, i := range arr {
-		res, err := strconv.Atoi(i)
-		if err != nil {
-			return result, false
-		}
-		result = append(result, res)
-	}
-	return result, true
 }
 
 func Int64Join(list []int64, sep string) string {
@@ -58,7 +36,7 @@ func Int64Join(list []int64, sep string) string {
 		if k > 0 {
 			b.WriteString(sep)
 		}
-		b.WriteString(ToString(v))
+		b.WriteString(strconv.FormatInt(v, Int64Base))
 	}
 	return b.String()
 }
@@ -94,4 +72,16 @@ func SplitArray(arr []int64, num int64) [][]int64 {
 		start = i * num
 	}
 	return segments
+}
+
+func ConvertToIntArray(arr []string) ([]int, bool) {
+	result := make([]int, 0)
+	for _, i := range arr {
+		res, err := strconv.Atoi(i)
+		if err != nil {
+			return result, false
+		}
+		result = append(result, res)
+	}
+	return result, true
 }

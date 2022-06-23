@@ -3,7 +3,8 @@ package bloom
 import (
 	"context"
 
-	"github.com/chuan-fu/Common/util"
+	"github.com/chuan-fu/Common/baseservice/stringx"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/spaolacci/murmur3"
 )
@@ -38,11 +39,11 @@ func NewBloomFilter(store redis.Cmdable, key string, elements uint) *Bloom {
 }
 
 func (f *Bloom) AddStr(ctx context.Context, data string) (bool, error) {
-	return f.Add(ctx, util.StringToBytes(data))
+	return f.Add(ctx, stringx.StringToBytes(data))
 }
 
 func (f *Bloom) ExistsStr(ctx context.Context, data string) (bool, error) {
-	return f.Exists(ctx, util.StringToBytes(data))
+	return f.Exists(ctx, stringx.StringToBytes(data))
 }
 
 // 添加元素

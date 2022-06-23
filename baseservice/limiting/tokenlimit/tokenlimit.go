@@ -6,9 +6,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/chuan-fu/Common/baseservice/cast"
+
 	dbRedis "github.com/chuan-fu/Common/db/redis"
 
-	"github.com/chuan-fu/Common/util"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
@@ -144,12 +145,12 @@ func (t *TokenLimiter) reserveN(ctx context.Context, now time.Time, n int) bool 
 	resp, err := t.store.Eval(ctx,
 		script,
 		[]string{t.tokenKey, t.timestampKey},
-		util.ToString(t.rate),
-		util.ToString(t.per),
-		util.ToString(t.burst),
-		util.ToString(t.ttl),
-		util.ToString(now.Unix()),
-		util.ToString(n),
+		cast.ToString(t.rate),
+		cast.ToString(t.per),
+		cast.ToString(t.burst),
+		cast.ToString(t.ttl),
+		cast.ToString(now.Unix()),
+		cast.ToString(n),
 	).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
 		log.Errorf("fail to use rate limiter: %s, use in-process limiter for rescue", err)

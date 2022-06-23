@@ -2,9 +2,6 @@ package cache
 
 import (
 	"context"
-	"reflect"
-
-	"github.com/chuan-fu/Common/util"
 
 	"github.com/chuan-fu/Common/cdao"
 	"github.com/chuan-fu/Common/zlog"
@@ -101,25 +98,6 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListB
 		return resp[start:], nil
 	}
 	return resp[start:stop], nil
-}
-
-func toStringSlice(data interface{}) ([]string, error) {
-	if data == nil {
-		return []string{}, nil
-	}
-	if !util.IsSliceOrPtrSlice(data) {
-		return nil, errors.New("getByDb返回值需要为切片 或者 切片指针")
-	}
-	rv := reflect.ValueOf(data)
-	if reflect.TypeOf(data).Kind() == reflect.Ptr {
-		rv = rv.Elem()
-	}
-
-	resp := make([]string, 0, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		resp = append(resp, util.ToString(rv.Index(i).Interface()))
-	}
-	return resp, nil
 }
 
 func defaultGetListByCache(ctx context.Context, b cdao.BaseRedisOp, isAll bool, pageIndex, pageSize int64) ([]string, error) {

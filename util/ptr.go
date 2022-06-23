@@ -9,9 +9,6 @@ func Indirect(v interface{}) interface{} {
 	if v == nil {
 		return nil
 	}
-	if reflect.TypeOf(v).Kind() != reflect.Ptr {
-		return v
-	}
 	rv := reflect.ValueOf(v)
 	for rv.Kind() == reflect.Ptr && !rv.IsNil() {
 		rv = rv.Elem()

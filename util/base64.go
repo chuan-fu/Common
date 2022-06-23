@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"net/url"
 	"strings"
+
+	"github.com/chuan-fu/Common/baseservice/stringx"
 )
 
 // base64编码
@@ -11,7 +13,7 @@ func Encode(s string) string {
 	if s == "" {
 		return s
 	}
-	return base64.StdEncoding.EncodeToString(StringToBytes(s))
+	return base64.StdEncoding.EncodeToString(stringx.StringToBytes(s))
 }
 
 func EncodeV2(s string) string {
@@ -29,7 +31,7 @@ func Decode(s string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return BytesToString(b), nil
+	return stringx.BytesToString(b), nil
 }
 
 func DecodeV2(s string) (string, error) {
@@ -45,7 +47,7 @@ func DecodeV2(s string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return BytesToString(result), nil
+	return stringx.BytesToString(result), nil
 }
 
 // url编码

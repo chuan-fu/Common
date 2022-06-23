@@ -1,4 +1,4 @@
-package sort
+package arrayx
 
 const (
 	two = 2

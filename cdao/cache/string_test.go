@@ -29,7 +29,7 @@ func init() {
 }
 
 func TestStrCache(t *testing.T) {
-	op := cdao.NewBaseRedisOpWithKT("test:A:2", time.Minute)
+	op := cdao.NewBaseRedisOp("test:A:2", time.Minute)
 	data, err := GetBaseStringCache(context.TODO(), op,
 		func(ctx context.Context) (string, error) {
 			log.Info("getByDB")

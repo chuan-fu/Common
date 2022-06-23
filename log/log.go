@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/chuan-fu/Common/util"
+	"github.com/chuan-fu/Common/baseservice/stringx"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -103,7 +103,7 @@ func init() {
 			return
 		}
 	}
-	logger = initZapLog(util.StringToBytes(defaultConfFile))
+	logger = initZapLog(stringx.StringToBytes(defaultConfFile))
 }
 
 func initZapLog(bs []byte) (logger *zap.Logger) {
@@ -116,7 +116,7 @@ func initZapLog(bs []byte) (logger *zap.Logger) {
 }
 
 func ReplaceLoggerFromString(cfg string) {
-	logger = initZapLog(util.StringToBytes(cfg))
+	logger = initZapLog(stringx.StringToBytes(cfg))
 }
 
 func GetLogger() *zap.Logger {

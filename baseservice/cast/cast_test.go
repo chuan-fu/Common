@@ -1,9 +1,8 @@
-package util
+package cast
 
 import (
 	"fmt"
 	"testing"
-	"time"
 )
 
 func TestToString(t *testing.T) {
@@ -11,6 +10,7 @@ func TestToString(t *testing.T) {
 	s := 1
 	bs := []byte("aa")
 	fmt.Println(ToString(s))
+	fmt.Println(ToString(bs))
 	fmt.Println(ToString(&bs))
 	fmt.Println(ToString(&s))
 	fmt.Println(ToString(&map[string]string{
@@ -19,16 +19,6 @@ func TestToString(t *testing.T) {
 	fmt.Println(ToString(1))
 	fmt.Println(ToString(1.2))
 	fmt.Println(ToString(-1.2))
-}
-
-func TestTimeDurationToString(t *testing.T) {
-	fmt.Println(timeDurationToString(2 * time.Hour))
-	fmt.Println(timeDurationToString(2 * time.Minute))
-	fmt.Println(timeDurationToString(120 * time.Second))
-	fmt.Println(timeDurationToString(2 * time.Second))
-	fmt.Println(timeDurationToString(2 * time.Millisecond))
-	fmt.Println(timeDurationToString(2 * time.Microsecond))
-	fmt.Println(timeDurationToString(2 * time.Nanosecond))
 }
 
 func TestToInt(t *testing.T) {

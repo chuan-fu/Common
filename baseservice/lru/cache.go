@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"sync"
 
-	"github.com/chuan-fu/Common/util"
+	"github.com/chuan-fu/Common/baseservice/cast"
 )
 
 // LRU cache实现
@@ -76,7 +76,7 @@ func (l *LruCache) Top(size int) (resp []*Entry) {
 	if size <= 0 {
 		size = l.list.Len()
 	}
-	num := util.Min(l.list.Len(), size)
+	num := min(l.list.Len(), size)
 
 	resp = make([]*Entry, 0, num)
 
@@ -106,17 +106,24 @@ func (e *Entry) V() interface{} {
 }
 
 func (e *Entry) StringV() string {
-	return util.ToString(e.v)
+	return cast.ToString(e.v)
 }
 
 func (e *Entry) Int64V() (int64, error) {
-	return util.ToInt64I(e.v)
+	return cast.ToInt64I(e.v)
 }
 
 func (e *Entry) IntV() (int, error) {
-	return util.ToIntI(e.v)
+	return cast.ToIntI(e.v)
 }
 
 func (e *Entry) Float64V() (float64, error) {
-	return util.ToFloat64I(e.v)
+	return cast.ToFloat64I(e.v)
+}
+
+func min(a, b int) int {
+	if a <= b {
+		return a
+	}
+	return b
 }

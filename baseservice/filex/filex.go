@@ -1,4 +1,4 @@
-package util
+package filex
 
 import (
 	"bufio"
@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/chuan-fu/Common/util"
 	"github.com/chuan-fu/Common/zlog"
 )
 
@@ -33,7 +34,7 @@ func ReadFileLine(path string) (<-chan []byte, error) {
 	ch := make(chan []byte, 0)
 
 	go func(f *os.File, c chan []byte) {
-		defer DeferFunc()
+		defer util.DeferFunc()
 		defer f.Close()
 		defer close(c)
 
@@ -101,7 +102,7 @@ func ReadPath(paths ...string) <-chan string {
 	}
 
 	go func(pathList []string, c chan<- string) {
-		defer DeferFunc()
+		defer util.DeferFunc()
 		defer close(c)
 		for k := range pathList {
 			readDir(pathList[k], c)

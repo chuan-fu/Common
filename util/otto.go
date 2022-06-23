@@ -3,6 +3,8 @@ package util
 import (
 	"fmt"
 
+	"github.com/chuan-fu/Common/baseservice/stringx"
+
 	"github.com/robertkrimen/otto"
 )
 
@@ -20,5 +22,5 @@ func JSObjectToJSON(s string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return StringToBytes(v.String()), nil
+	return stringx.StringToBytes(v.String()), nil
 }
