@@ -1,4 +1,4 @@
-package ants
+package antsx
 
 import (
 	"sync"
@@ -15,9 +15,15 @@ import (
 // 大于0时，可等待waitTask个任务，其余返回失败
 // ants.WithPreAlloc(true)为NewPool时预分配内存，为true不支持缩扩容pool
 
+const (
+	defaultAntSize = 100 * 10000 // 100w
+)
+
 var (
 	globalAnts *ants.Pool
 	globalOnce sync.Once
+
+	AntSize = defaultAntSize
 )
 
 // 全局ants尽量设一个足够大的值，达到极限内存使用量
@@ -28,18 +34,14 @@ func NewGlobalPool(size int) {
 			// 协程池耗尽后不等待直接报错
 			ants.WithNonblocking(true),
 			// panic处理
-			ants.WithPanicHandler(util.DeferFuncLog),
+			ants.WithPanicHandler(util.DeferHandle),
 		)
 	})
 }
 
-type Task func() (err error)
-
 // 使用
 func Go(f func() error) error {
-	if globalAnts == nil {
-		return errors.New("globalAnts is nil")
-	}
+	NewGlobalPool(AntSize)
 	if err := globalAnts.Submit(func() {
 		if e := f(); e != nil {
 			log.Errorf("globalAnts Task error : %s", e.Error())
@@ -57,9 +59,7 @@ func GoVoid(f func() error) {
 }
 
 func GoGo(f func()) {
-	if globalAnts == nil {
-		log.Error(errors.New("globalAnts is nil"))
-	}
+	NewGlobalPool(AntSize)
 	if err := globalAnts.Submit(f); err != nil {
 		log.Error(errors.Wrap(err, "globalAnts Submit error"))
 	}
@@ -68,10 +68,10 @@ func GoGo(f func()) {
 // 使用完毕记得 Release() or ReleaseTimeout()
 func NewLocalAnts(size int, opts ...ants.Option) (*ants.Pool, error) {
 	if len(opts) == 0 {
-		return ants.NewPool(size, ants.WithPanicHandler(util.DeferFuncLog))
+		return ants.NewPool(size, ants.WithPanicHandler(util.DeferHandle))
 	}
 	optsNew := make([]ants.Option, 1, len(opts)+1)
-	optsNew[0] = ants.WithPanicHandler(util.DeferFuncLog) // panic处理
+	optsNew[0] = ants.WithPanicHandler(util.DeferHandle) // panic处理
 	optsNew = append(optsNew, opts...)
 	return ants.NewPool(size, optsNew...)
 }

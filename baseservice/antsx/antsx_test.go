@@ -1,4 +1,4 @@
-package ants
+package antsx
 
 import (
 	"fmt"
@@ -40,7 +40,7 @@ func useGlobalAnts() {
 
 func checkAntsClose() {
 	// ants.WithMaxBlockingTasks(-10)
-	p, _ := ants.NewPool(10, ants.WithNonblocking(true), ants.WithPanicHandler(util.DeferFuncLog))
+	p, _ := ants.NewPool(10, ants.WithNonblocking(true), ants.WithPanicHandler(util.DeferHandle))
 	fmt.Println()
 	fmt.Println()
 

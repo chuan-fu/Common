@@ -108,5 +108,5 @@ func (r *randomParam) getRune() rune {
 		}
 		return r.arrList[k].data[randInt]
 	}
-	return 'A'
+	return 0
 }

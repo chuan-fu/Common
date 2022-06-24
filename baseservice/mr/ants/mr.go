@@ -1,4 +1,5 @@
-package antsmr
+// 使用ants的mr
+package mr
 
 import (
 	"context"
@@ -6,7 +7,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/chuan-fu/Common/baseservice/ants"
+	"github.com/chuan-fu/Common/baseservice/antsx"
 	"github.com/chuan-fu/Common/baseservice/mr"
 )
 
@@ -129,7 +130,7 @@ func ForEach(generate GenerateFunc, mapper ForEachFunc, opts ...Option) {
 	collector := make(chan interface{}, options.workers)
 	done := make(chan mr.PlaceholderType)
 
-	ants.GoGo(func() {
+	antsx.GoGo(func() {
 		executeMappers(mapperContext{
 			ctx: options.ctx,
 			mapper: func(item interface{}, writer Writer) {
@@ -209,7 +210,7 @@ func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapp
 		finish()
 	})
 
-	ants.GoGo(func() {
+	antsx.GoGo(func() {
 		defer func() {
 			drain(collector)
 			if r := recover(); r != nil {
@@ -221,7 +222,7 @@ func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapp
 		reducer(collector, writer, cancel)
 	})
 
-	ants.GoGo(func() {
+	antsx.GoGo(func() {
 		executeMappers(mapperContext{
 			ctx: options.ctx,
 			mapper: func(item interface{}, w Writer) {
@@ -296,7 +297,7 @@ func buildOptions(opts ...Option) *mapReduceOptions {
 
 func buildSource(generate GenerateFunc, panicChan *onceChan) chan interface{} {
 	source := make(chan interface{})
-	ants.GoGo(func() {
+	antsx.GoGo(func() {
 		defer func() {
 			if r := recover(); r != nil {
 				panicChan.write(r)
@@ -347,7 +348,7 @@ func executeMappers(mCtx mapperContext) {
 			}
 
 			wg.Add(1)
-			ants.GoGo(func() {
+			antsx.GoGo(func() {
 				defer func() {
 					if r := recover(); r != nil {
 						atomic.AddInt32(&failed, 1)

@@ -9,7 +9,7 @@ import (
 )
 
 func TestSingleFightDo(t *testing.T) {
-	g := NewSingleFlightWithTimeout(1 * time.Second)
+	g := NewSingleFlightWithTimeout(3 * time.Second)
 	// g := NewSingleFlight()
 
 	for i := 0; i < 5; i++ {

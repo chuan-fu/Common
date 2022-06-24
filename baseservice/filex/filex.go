@@ -31,7 +31,7 @@ func ReadFileLine(path string) (<-chan []byte, error) {
 		return nil, err
 	}
 
-	ch := make(chan []byte, 0)
+	ch := make(chan []byte)
 
 	go func(f *os.File, c chan []byte) {
 		defer util.DeferFunc()
