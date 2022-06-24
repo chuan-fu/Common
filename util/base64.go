@@ -18,7 +18,7 @@ func Encode(s string) string {
 
 func EncodeV2(s string) string {
 	result := base64.StdEncoding.EncodeToString([]byte(s))
-	result = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(result, "=", ""), "/", "_"), "+", "-")
+	result = stringx.ReplaceByte(stringx.ReplaceByte(stringx.TrimByte(result, '='), '/', '_'), '+', '-')
 	return result
 }
 
