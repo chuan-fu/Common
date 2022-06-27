@@ -21,9 +21,9 @@ redis:
 */
 
 type RedisConf struct {
-	Addr     string `required:"true" json:"addr" yaml:"addr"`
-	Password string `default:"" json:"password" yaml:"password"`
-	DB       int    `default:"0" json:"db" yaml:"db"`
+	Addr     []string `required:"true" json:"addr" yaml:"addr"`
+	Password string   `default:"" json:"password" yaml:"password"`
+	DB       int      `default:"0" json:"db" yaml:"db"`
 }
 
 var redisCli redis.Cmdable
@@ -37,11 +37,23 @@ func ReloadRedis(conf RedisConf) error {
 }
 
 func ConnectRedis(conf RedisConf) error {
-	rc := redis.NewClient(&redis.Options{
-		Addr:     conf.Addr,
-		Password: conf.Password,
-		DB:       conf.DB,
-	})
+	var rc redis.Cmdable
+
+	switch len(conf.Addr) {
+	case 0:
+		return errors.New("redis配置有误")
+	case 1:
+		rc = redis.NewClient(&redis.Options{
+			Addr:     conf.Addr[0],
+			Password: conf.Password,
+			DB:       conf.DB,
+		})
+	default:
+		rc = redis.NewClusterClient(&redis.ClusterOptions{
+			Addrs:    conf.Addr,
+			Password: conf.Password,
+		})
+	}
 
 	pong, err := rc.Ping(context.TODO()).Result()
 	if err != nil {
