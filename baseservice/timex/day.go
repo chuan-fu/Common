@@ -3,23 +3,23 @@ package timex
 import "time"
 
 // 当日0点
-func (t *timeX) DayFirst() time.Time {
-	year, month, day := t.t.Date()
-	return time.Date(year, month, day, zero, zero, zero, zero, t.t.Location())
+func (t *TimeX) BeginningOfDay() time.Time {
+	y, m, d := t.t.Date()
+	return time.Date(y, m, d, zero, zero, zero, zero, t.t.Location())
 }
-func (t *timeX) DayFirstUnix() int64 { return t.DayFirst().Unix() }
+func (t *TimeX) BeginningOfDayUnix() int64 { return t.BeginningOfDay().Unix() }
 
 // 当日最后1秒
-func (t *timeX) DayLast() time.Time {
-	return t.DayFirst().Add(OneDay - time.Second)
+func (t *TimeX) EndOfDay() time.Time {
+	return t.BeginningOfDay().Add(Day - time.Second)
 }
-func (t *timeX) DayLastUnix() int64 { return t.DayLast().Unix() }
+func (t *TimeX) EndOfDayUnix() int64 { return t.EndOfDay().Unix() }
 
 // 明日0点
-func (t *timeX) NextDay() time.Time {
-	return t.DayFirst().Add(OneDay)
+func (t *TimeX) NextDay() time.Time {
+	return t.BeginningOfDay().Add(Day)
 }
-func (t *timeX) NextDayUnix() int64 { return t.NextDay().Unix() }
+func (t *TimeX) NextDayUnix() int64 { return t.NextDay().Unix() }
 
-func (t *timeX) DayUseTime() int64  { return t.Unix() - t.DayFirstUnix() } // 当日使用时间
-func (t *timeX) DayLeftTime() int64 { return t.NextDayUnix() - t.Unix() }  // 当日剩余时间
+func (t *TimeX) DayUseTime() int64  { return t.Unix() - t.BeginningOfDayUnix() } // 当日使用时间
+func (t *TimeX) DayLeftTime() int64 { return t.NextDayUnix() - t.Unix() }        // 当日剩余时间
