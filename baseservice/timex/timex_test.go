@@ -1,0 +1,63 @@
+package timex
+
+import (
+	"fmt"
+	"testing"
+)
+
+func TestName(t *testing.T) {
+	now := NewNow()
+	// now := NewTimestamp(1642089600)
+	Fmt(now)
+	// Fmt(NewTimeX(time.Time{}))
+	// now := time.Now()
+	// time.Sleep(time.Second)
+	// fmt.Println(SinceFmt(now))
+	// SincePrint(now)
+}
+
+func Fmt(x TimeX) {
+	fmt.Println("Unix =>", x.Unix())
+	fmt.Println("UnixNano =>", x.UnixNano())
+	fmt.Println()
+	fmt.Println("FormatDay =>", x.FormatDay())
+	fmt.Println("FormatTime =>", x.FormatTime())
+	fmt.Println()
+	fmt.Println("DayFirst =>", x.DayFirst().Format(DefaultTimeFormat))
+	fmt.Println("DayFirstUnix =>", x.DayFirstUnix())
+	fmt.Println()
+	fmt.Println("NextDay =>", x.NextDay().Format(DefaultTimeFormat))
+	fmt.Println("NextDayUnix =>", x.NextDayUnix())
+	fmt.Println()
+	fmt.Println("DayLast =>", x.DayLast().Format(DefaultTimeFormat))
+	fmt.Println("DayLastUnix =>", x.DayLastUnix())
+	fmt.Println()
+	fmt.Println("DayUseTime =>", x.DayUseTime())
+	fmt.Println("DayLaveTime =>", x.DayLeftTime())
+	fmt.Println()
+	fmt.Println("MonthFirst =>", x.MonthFirst().Format(DefaultTimeFormat))
+	fmt.Println("MonthFirstUnix =>", x.MonthFirstUnix())
+	fmt.Println()
+	fmt.Println("NextMonth =>", x.NextMonth().Format(DefaultTimeFormat))
+	fmt.Println("NextMonthUnix =>", x.NextMonthUnix())
+	fmt.Println()
+	fmt.Println("MonthLast =>", x.MonthLast().Format(DefaultTimeFormat))
+	fmt.Println("MonthLastUnix =>", x.MonthLastUnix())
+	fmt.Println()
+	fmt.Println("MonthUseTime =>", x.MonthUseTime())
+	fmt.Println("MonthLeftTime =>", x.MonthLeftTime())
+	fmt.Println()
+	fmt.Println("WeekFirst =>", x.WeekFirst().Format(DefaultTimeFormat))
+	fmt.Println("WeekFirstUnix =>", x.WeekFirstUnix())
+	fmt.Println()
+	fmt.Println("NextWeek =>", x.NextWeek().Format(DefaultTimeFormat))
+	fmt.Println("NextWeekUnix =>", x.NextWeekUnix())
+	fmt.Println()
+	fmt.Println("WeekLast =>", x.WeekLast().Format(DefaultTimeFormat))
+	fmt.Println("WeekLastUnix =>", x.WeekLastUnix())
+	fmt.Println()
+	fmt.Println("WeekUseTime =>", x.WeekUseTime())
+	fmt.Println("WeekLeftTime =>", x.WeekLeftTime())
+	fmt.Println()
+	fmt.Println("IsZero =>", x.IsZero())
+}

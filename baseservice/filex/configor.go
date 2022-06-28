@@ -1,4 +1,4 @@
-package configor
+package filex
 
 import (
 	"github.com/chuan-fu/Common/zlog"
