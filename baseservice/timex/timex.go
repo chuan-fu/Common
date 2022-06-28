@@ -3,15 +3,8 @@ package timex
 import (
 	"fmt"
 	"time"
-)
 
-const (
-	zero              = 0
-	one               = 1
-	DefaultDayFormat  = "2006-01-02"
-	DefaultTimeFormat = "2006-01-02 15:04:05"
-	Day               = 24 * time.Hour
-	Week              = 7 * Day
+	"github.com/chuan-fu/Common/cdefs"
 )
 
 type TimeX struct {
@@ -24,11 +17,11 @@ func NewNow() *TimeX {
 
 // 秒级时间戳
 func NewTimestamp(unixSec int64) *TimeX {
-	return &TimeX{t: time.Unix(unixSec, zero)}
+	return &TimeX{t: time.Unix(unixSec, 0)}
 }
 
 func NewTimestampWithLocation(unixSec int64, loc *time.Location) *TimeX {
-	return &TimeX{t: time.Unix(unixSec, zero).In(loc)}
+	return &TimeX{t: time.Unix(unixSec, 0).In(loc)}
 }
 
 func NewTimeX(t time.Time) *TimeX {
@@ -52,11 +45,11 @@ func (t *TimeX) Format(layout string) string {
 }
 
 func (t *TimeX) FormatDay() string {
-	return t.t.Format(DefaultDayFormat)
+	return t.t.Format(cdefs.DayFormat)
 }
 
 func (t *TimeX) FormatTime() string {
-	return t.t.Format(DefaultTimeFormat)
+	return t.t.Format(cdefs.TimeFormat)
 }
 
 // 添加时间，可为负数
@@ -66,17 +59,17 @@ func (t *TimeX) Add(d time.Duration) *TimeX {
 
 // 添加一天
 func (t *TimeX) AddDay() *TimeX {
-	return &TimeX{t: t.t.Add(Day)}
+	return &TimeX{t: t.t.Add(cdefs.Day)}
 }
 
 // 添加几天
 func (t *TimeX) AddSomeDay(d int64) *TimeX {
-	return &TimeX{t: t.t.Add(time.Duration(d) * Day)}
+	return &TimeX{t: t.t.Add(time.Duration(d) * cdefs.Day)}
 }
 
 // 添加一周
 func (t *TimeX) AddWeek() *TimeX {
-	return &TimeX{t: t.t.Add(Day)}
+	return &TimeX{t: t.t.Add(cdefs.Day)}
 }
 
 // 添加时间

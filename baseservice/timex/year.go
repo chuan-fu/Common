@@ -1,16 +1,18 @@
 package timex
 
-import "time"
+import (
+	"time"
+)
 
 // 今年1月1号0点
 func (t *TimeX) BeginningOfYear() time.Time {
-	return time.Date(t.t.Year(), one, one, zero, zero, zero, zero, t.t.Location())
+	return time.Date(t.t.Year(), 1, 1, 0, 0, 0, 0, t.t.Location())
 }
 func (t *TimeX) BeginningOfYearUnix() int64 { return t.BeginningOfYear().Unix() }
 
 // 明年1月1号0点
 func (t *TimeX) NextYear() time.Time {
-	return time.Date(t.t.Year()+one, one, one, zero, zero, zero, zero, t.t.Location())
+	return time.Date(t.t.Year()+1, 1, 1, 0, 0, 0, 0, t.t.Location())
 }
 func (t *TimeX) NextYearUnix() int64 { return t.NextYear().Unix() }
 

@@ -1,18 +1,20 @@
 package timex
 
-import "time"
+import (
+	"time"
+)
 
 // 当月0点
 func (t *TimeX) BeginningOfMonth() time.Time {
 	y, m, _ := t.t.Date()
-	return time.Date(y, m, one, zero, zero, zero, zero, t.t.Location())
+	return time.Date(y, m, 1, 0, 0, 0, 0, t.t.Location())
 }
 func (t *TimeX) BeginningOfMonthUnix() int64 { return t.BeginningOfMonth().Unix() }
 
 // 下个月1号0点
 func (t *TimeX) NextMonth() time.Time {
 	y, m, _ := t.t.Date()
-	return time.Date(y, m+one, one, zero, zero, zero, zero, t.t.Location())
+	return time.Date(y, m+1, 1, 0, 0, 0, 0, t.t.Location())
 }
 func (t *TimeX) NextMonthUnix() int64 { return t.NextMonth().Unix() }
 

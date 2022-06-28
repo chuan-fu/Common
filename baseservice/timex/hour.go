@@ -1,11 +1,13 @@
 package timex
 
-import "time"
+import (
+	"time"
+)
 
 // 当前小时0分0秒
 func (t *TimeX) BeginningOfHour() time.Time {
 	y, m, d := t.t.Date()
-	return time.Date(y, m, d, t.t.Hour(), zero, zero, zero, t.t.Location())
+	return time.Date(y, m, d, t.t.Hour(), 0, 0, 0, t.t.Location())
 }
 func (t *TimeX) BeginningOfHourUnix() int64 { return t.BeginningOfHour().Unix() }
 

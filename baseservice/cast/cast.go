@@ -5,15 +5,12 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/chuan-fu/Common/cdefs"
+
 	"github.com/chuan-fu/Common/baseservice/jsonx"
 
 	"github.com/chuan-fu/Common/baseservice/stringx"
 	"github.com/pkg/errors"
-)
-
-const (
-	Int64Base  = 10
-	NumBitSize = 64
 )
 
 func ToInt(s string) (int, error) {
@@ -31,7 +28,7 @@ func ToInt64(s string) (int64, error) {
 	if s == "" {
 		return 0, errors.New(`ToInt64: unable to ToInt64("")`)
 	}
-	i, err := strconv.ParseInt(s, Int64Base, NumBitSize)
+	i, err := strconv.ParseInt(s, cdefs.BitSize10, cdefs.BitSize64)
 	if err != nil {
 		return 0, errors.Wrap(err, "ToInt64")
 	}
@@ -42,7 +39,7 @@ func ToFloat(s string) (float64, error) {
 	if s == "" {
 		return 0, errors.New(`ToFloat: unable to ToFloat("")`)
 	}
-	i, err := strconv.ParseFloat(s, NumBitSize)
+	i, err := strconv.ParseFloat(s, cdefs.BitSize64)
 	if err != nil {
 		return 0, errors.Wrap(err, "ToFloat")
 	}
@@ -174,7 +171,7 @@ func ToString(v interface{}) string {
 	case string:
 		return vt
 	case int64:
-		return strconv.FormatInt(vt, Int64Base)
+		return strconv.FormatInt(vt, cdefs.BitSize10)
 	case int:
 		return strconv.Itoa(vt)
 	}

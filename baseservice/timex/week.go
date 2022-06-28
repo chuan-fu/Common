@@ -1,6 +1,10 @@
 package timex
 
-import "time"
+import (
+	"time"
+
+	"github.com/chuan-fu/Common/cdefs"
+)
 
 // 本周周一0点
 func (t *TimeX) BeginningOfWeek() time.Time {
@@ -8,15 +12,15 @@ func (t *TimeX) BeginningOfWeek() time.Time {
 	if weekDay := t.t.Weekday(); weekDay == time.Sunday {
 		d -= int(time.Saturday)
 	} else {
-		d = d - int(weekDay) + one
+		d = d - int(weekDay) + 1
 	}
-	return time.Date(y, m, d, zero, zero, zero, zero, t.t.Location())
+	return time.Date(y, m, d, 0, 0, 0, 0, t.t.Location())
 }
 func (t *TimeX) BeginningOfWeekUnix() int64 { return t.BeginningOfWeek().Unix() }
 
 // 下周一0点
 func (t *TimeX) NextWeek() time.Time {
-	return t.BeginningOfWeek().Add(Week)
+	return t.BeginningOfWeek().Add(cdefs.Week)
 }
 func (t *TimeX) NextWeekUnix() int64 { return t.NextWeek().Unix() }
 

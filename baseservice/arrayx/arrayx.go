@@ -3,10 +3,8 @@ package arrayx
 import (
 	"bytes"
 	"strconv"
-)
 
-const (
-	Int64Base = 10
+	"github.com/chuan-fu/Common/cdefs"
 )
 
 func IsInArray(s int64, array []int64) bool {
@@ -36,7 +34,7 @@ func Int64Join(list []int64, sep string) string {
 		if k > 0 {
 			b.WriteString(sep)
 		}
-		b.WriteString(strconv.FormatInt(v, Int64Base))
+		b.WriteString(strconv.FormatInt(v, cdefs.BitSize10))
 	}
 	return b.String()
 }

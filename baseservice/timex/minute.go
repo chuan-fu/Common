@@ -1,12 +1,14 @@
 package timex
 
-import "time"
+import (
+	"time"
+)
 
 // 当前分钟0秒
 func (t *TimeX) BeginningOfMinute() time.Time {
 	y, m, d := t.t.Date()
 	hour, min, _ := t.t.Clock()
-	return time.Date(y, m, d, hour, min, zero, zero, t.t.Location())
+	return time.Date(y, m, d, hour, min, 0, 0, t.t.Location())
 }
 func (t *TimeX) BeginningOfMinuteUnix() int64 { return t.BeginningOfMinute().Unix() }
 

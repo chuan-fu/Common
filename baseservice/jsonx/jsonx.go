@@ -2,23 +2,18 @@ package jsonx
 
 import (
 	"github.com/bytedance/sonic"
-)
-
-const (
-	NoneStr      = ""
-	NoneArrayStr = "[]"
-	NoneObjStr   = "{}"
+	"github.com/chuan-fu/Common/cdefs"
 )
 
 func IsArrayNone(data string) bool {
-	if data == NoneStr || data == NoneArrayStr {
+	if data == cdefs.NoneStr || data == cdefs.NoneArrayStr {
 		return true
 	}
 	return false
 }
 
 func IsObjNone(data string) bool {
-	if data == NoneStr || data == NoneObjStr {
+	if data == cdefs.NoneStr || data == cdefs.NoneObjStr {
 		return true
 	}
 	return false
@@ -26,7 +21,7 @@ func IsObjNone(data string) bool {
 
 // v 应为指针
 func Unmarshal(s string, v interface{}) error {
-	if s == NoneStr {
+	if s == cdefs.NoneStr {
 		return nil
 	}
 	return sonic.UnmarshalString(s, v)
@@ -50,7 +45,7 @@ func UnmarshalObj(s string, v interface{}) error {
 
 func Marshal(v interface{}) string {
 	if v == nil {
-		return NoneStr
+		return cdefs.NoneStr
 	}
 	data, _ := sonic.MarshalString(v)
 	return data
@@ -58,7 +53,7 @@ func Marshal(v interface{}) string {
 
 func MarshalObj(v interface{}) string {
 	if v == nil {
-		return NoneObjStr
+		return cdefs.NoneObjStr
 	}
 	data, _ := sonic.MarshalString(v)
 	return data
@@ -66,7 +61,7 @@ func MarshalObj(v interface{}) string {
 
 func MarshalArray(v interface{}) string {
 	if v == nil {
-		return NoneArrayStr
+		return cdefs.NoneArrayStr
 	}
 	data, _ := sonic.MarshalString(v)
 	return data
