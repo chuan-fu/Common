@@ -16,7 +16,7 @@ import (
 
 func init() {
 	err := redis.ConnectRedis(redis.RedisConf{
-		Addr: "127.0.0.1:6379",
+		Addr: []string{"127.0.0.1:6379"},
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -93,4 +93,16 @@ func TestSetBits(t *testing.T) {
 
 func TestGetBits(t *testing.T) {
 	fmt.Println(NewBaseRedisOp("key:setbits:1", time.Hour).GetBits(context.TODO(), []int64{-1, -2, 0, 1, 2, 3, 4, 5, 6, 7, 1231, 1111}))
+}
+
+func TestZGetAll(t *testing.T) {
+	fmt.Println(NewBaseRedisOp("cache:zset:1", time.Hour).ZGetAll(context.Background()))
+	fmt.Println(NewBaseRedisOp("cache:zset:1", time.Hour).ZRangeStringList(context.Background(), 2, 3))
+	fmt.Println(NewBaseRedisOp("cache:zset:1", time.Hour).ZRangeStringList(context.Background(), 10, 11))
+	fmt.Println(NewBaseRedisOp("cache:zset:2", time.Hour).ZRangeStringList(context.Background(), 10, 20))
+}
+
+func TestSGetAll(t *testing.T) {
+	fmt.Println(NewBaseRedisOp("cache:set:1", time.Hour).SGetAll(context.Background()))
+	fmt.Println(NewBaseRedisOp("cache:set:2", time.Hour).SGetAll(context.Background()))
 }

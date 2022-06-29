@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chuan-fu/Common/baseservice/syncx"
+
 	"github.com/chuan-fu/Common/cdao"
-	"github.com/chuan-fu/Common/db/redis"
-	"github.com/chuan-fu/Common/util"
 	"github.com/chuan-fu/Common/zlog"
 )
 
@@ -19,22 +19,25 @@ type AA struct {
 	C  float64 `json:"c"`
 }
 
-func init() {
-	err := redis.ConnectRedis(redis.RedisConf{
-		Addr: "127.0.0.1:6379",
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func TestStrCache(t *testing.T) {
-	op := cdao.NewBaseRedisOp("test:A:2", time.Minute)
-	data, err := GetBaseStringCache(context.TODO(), op,
-		func(ctx context.Context) (string, error) {
-			log.Info("getByDB")
-			return `234`, nil
-		},
-	)
-	fmt.Println(data, err, util.Type(data))
+	op := cdao.NewBaseRedisOp("cache:string:1", time.Minute)
+	sg := syncx.NewSingleFlight()
+	_ = sg
+
+	ch := NewCacheHandle(sg)
+
+	ctx := context.Background()
+	f := func(ctx context.Context) (string, error) {
+		log.Info("getByDB")
+		return "A", nil
+	}
+
+	for i := 0; i < 100; i++ {
+		go func() {
+			data, err := ch.GetBaseStringCache(ctx, op, f)
+			fmt.Println(data, err)
+		}()
+	}
+
+	time.Sleep(3 * time.Second)
 }

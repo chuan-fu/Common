@@ -154,43 +154,42 @@ func (b *baseRedisOp) ZAddCoverStringList(ctx context.Context, list []string) er
 }
 
 // zset获取所有
-func (b *baseRedisOp) ZGetAll(ctx context.Context) ([]string, error) {
-	dataInter, err := b.store.Eval(ctx, zgetallScript, []string{b.key}).Result()
+func (b *baseRedisOp) ZGetAll(ctx context.Context) (data []string, has bool, err error) {
+	var dataInter interface{}
+	dataInter, err = b.store.Eval(ctx, zgetallScript, []string{b.key}).Result()
 	if err != nil && !IsRedisNil(err) {
 		err = errors.Wrap(err, "BaseRedisOp ZGetAll")
-		return nil, err
+		return
 	}
-	if dataInter == nil {
-		return nil, nil
+	if IsRedisNil(err) { // 返回空代表不存在
+		return nil, false, nil
 	}
-
-	dataList, _ := dataInter.([]interface{})
-	data := make([]string, 0, len(dataList))
-	for k := range dataList {
-		data = append(data, cast.ToString(dataList[k]))
-	}
-	return data, nil
+	log.Debugf("cache【%s】存在", b.key)
+	return toStringList(dataInter), true, nil
 }
 
 // 获取列表数据
-func (b *baseRedisOp) ZRangeStringList(ctx context.Context, start, stop int64) (data []string, err error) {
-	data, err = b.store.ZRange(ctx, b.key, start, stop).Result()
+// start、stop为下标，start <= data <= stop
+// 返回条数为 stop-start+1
+func (b *baseRedisOp) ZRangeStringList(ctx context.Context, start, stop int64) (data []string, has bool, err error) {
+	var dataInter interface{}
+	dataInter, err = b.store.Eval(ctx, zgetScript, []string{b.key}, start, stop).Result()
 	if err != nil {
-		err = errors.Wrap(err, "BaseRedisOp ZRange")
+		err = errors.Wrap(err, "BaseRedisOp ZGetAll")
+		return
 	}
-	return
+	if _, ok := dataInter.(int64); ok { // 如果key不存在，返回一个int64类型的数字 0
+		return
+	}
+	log.Debugf("cache【%s】存在", b.key)
+	return toStringList(dataInter), true, nil
 }
 
 // 获取列表数据
-func (b *baseRedisOp) ZRangeStringListWithPage(ctx context.Context, pageIndex, pageSize int64) (data []string, err error) {
+func (b *baseRedisOp) ZRangeStringListWithPage(ctx context.Context, pageIndex, pageSize int64) (data []string, has bool, err error) {
 	start := (pageIndex - 1) * pageSize
 	end := start + pageSize - 1
-
-	data, err = b.store.ZRange(ctx, b.key, start, end).Result()
-	if err != nil {
-		err = errors.Wrap(err, "BaseRedisOp ZRange")
-	}
-	return
+	return b.ZRangeStringList(ctx, start, end)
 }
 
 // 覆盖式写入set
@@ -217,6 +216,10 @@ func (b *baseRedisOp) SGetAll(ctx context.Context) (data []string, err error) {
 	data, err = b.store.SMembers(ctx, b.key).Result()
 	if err != nil {
 		err = errors.Wrap(err, "BaseRedisOp SGetAll")
+		return
+	}
+	if len(data) > 0 {
+		log.Debugf("cache【%s】存在", b.key)
 	}
 	return
 }
@@ -311,4 +314,13 @@ func (b *baseRedisOp) GetBits(ctx context.Context, value []int64) (resp map[int6
 
 func IsRedisNil(err error) bool {
 	return errors.Is(err, redis.Nil)
+}
+
+func toStringList(v interface{}) []string {
+	dataList, _ := v.([]interface{})
+	data := make([]string, 0, len(dataList))
+	for k := range dataList {
+		data = append(data, dataList[k].(string))
+	}
+	return data
 }

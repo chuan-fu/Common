@@ -2,27 +2,34 @@ package cache
 
 import (
 	"context"
-	"time"
 
-	"github.com/chuan-fu/Common/cdao"
+	"github.com/chuan-fu/Common/baseservice/syncx"
+	"github.com/pkg/errors"
 )
 
 type (
-	CheckExistsFunc func(ctx context.Context, b cdao.BaseRedisOp) (bool, error)
-	DelCacheFunc    func(ctx context.Context, b cdao.BaseRedisOp) error
+	GetJsonByDBFunc   func(ctx context.Context, model interface{}) error
+	GetStringByDBFunc func(ctx context.Context) (string, error)
+	GetListByDBFunc   func(ctx context.Context) ([]string, error)
+	GetSetByDBFunc    func(ctx context.Context) ([]string, error)
 )
 
-func defaultCheckExists(ctx context.Context, b cdao.BaseRedisOp) (bool, error) {
-	t, err := b.TTL(ctx)
-	if err != nil {
-		return false, err
-	}
-	if t > time.Second { // 默认情况下，如果剩余时间大于1s，下一次get数据可以取到
-		return true, nil
-	}
-	return false, nil
+var BaseGetByDBDataNilError = errors.New("getByDB获取的数据为空")
+
+type CacheHandle struct {
+	sf syncx.SingleFight
 }
 
-func defaultDelCache(ctx context.Context, b cdao.BaseRedisOp) error {
-	return b.Del(ctx)
+func NewCacheHandle(sf syncx.SingleFight) *CacheHandle {
+	return &CacheHandle{sf: sf}
+}
+
+// 默认为不带超时的单飞模式
+// 可替换
+var C = &CacheHandle{sf: syncx.NewSingleFlight()}
+
+var entryList = []string{""}
+
+func checkEntryList(v []string) bool {
+	return len(v) == 1 && v[0] == ""
 }

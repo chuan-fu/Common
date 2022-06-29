@@ -11,10 +11,19 @@ import (
 )
 
 func TestGetBaseSetCache(t *testing.T) {
-	op := cdao.NewBaseRedisOp("set:A:3", time.Minute)
-	data, err := GetBaseSetCache(context.TODO(), op, func(ctx context.Context) ([]string, error) {
+	op := cdao.NewBaseRedisOp("cache:set:1", time.Minute)
+	data, err := C.GetBaseSetCache(context.TODO(), op, func(ctx context.Context) ([]string, error) {
 		log.Info("getByDb")
 		return []string{"A", "b"}, nil
+	})
+	fmt.Println(data, err)
+}
+
+func TestGetBaseSetCacheEntry(t *testing.T) {
+	op := cdao.NewBaseRedisOp("cache:set:2", time.Minute)
+	data, err := C.GetBaseSetCache(context.TODO(), op, func(ctx context.Context) ([]string, error) {
+		log.Info("getByDb")
+		return []string{}, nil
 	})
 	fmt.Println(data, err)
 }

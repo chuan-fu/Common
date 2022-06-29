@@ -26,12 +26,12 @@ type BaseRedisOp interface {
 	HGet(ctx context.Context, key string) (string, error)
 
 	SAddCover(ctx context.Context, list []string) error     // 覆盖式写入
-	SGetAll(ctx context.Context) (data []string, err error) // 读取所有
+	SGetAll(ctx context.Context) (data []string, err error) // 读取所有 空数组表示缓存不存在
 
 	ZAddCoverStringList(ctx context.Context, list []string) error
-	ZGetAll(ctx context.Context) (data []string, err error)
-	ZRangeStringList(ctx context.Context, start, stop int64) (data []string, err error)                 // 根据下标
-	ZRangeStringListWithPage(ctx context.Context, pageIndex, pageSize int64) (data []string, err error) // 根据分页
+	ZGetAll(ctx context.Context) (data []string, has bool, err error)
+	ZRangeStringList(ctx context.Context, start, stop int64) (data []string, has bool, err error)                 // 根据下标
+	ZRangeStringListWithPage(ctx context.Context, pageIndex, pageSize int64) (data []string, has bool, err error) // 根据分页
 
 	SetBits(ctx context.Context, value []int64) error
 	GetBits(ctx context.Context, value []int64) (resp map[int64]struct{}, exists bool, err error)

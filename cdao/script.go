@@ -25,6 +25,13 @@ if num > 0 then
 end
 */
 
+/* zgetScript 获取列表
+if redis.call("exists", KEYS[1]) == 1 then
+	return redis.call("zrange", KEYS[1], ARGV[1], ARGV[2])
+end
+return 0
+*/
+
 /* saddScript 覆盖式写入
 if redis.call("exists", KEYS[1]) == 1 then
 	redis.call("del", KEYS[1])
@@ -66,6 +73,7 @@ const (
 	zaddScript    = `if redis.call("exists", KEYS[1]) == 1 then redis.call("del", KEYS[1]) end redis.call("zadd", KEYS[1], unpack(ARGV)) if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
 	saddScript    = `if redis.call("exists", KEYS[1]) == 1 then redis.call("del", KEYS[1]) end redis.call("sadd", KEYS[1], unpack(ARGV)) if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
 	zgetallScript = `local num = redis.call("zcard", KEYS[1]) if num > 0 then return redis.call("zrange", KEYS[1], 0, num) end`
+	zgetScript    = `if redis.call("exists", KEYS[1]) == 1 then return redis.call("zrange", KEYS[1], ARGV[1], ARGV[2]) end return 0`
 
 	setBitsScript = `for i, v in ipairs(ARGV) do redis.call("setbit", KEYS[1], v, 1) end if KEYS[2] then redis.call("expire", KEYS[1], KEYS[2]) end return 1`
 	getBitsScript = `if redis.call("exists", KEYS[1]) == 0 then return end local resp = {} for i, v in ipairs(ARGV) do resp[i] = redis.call("getbit", KEYS[1], v) end return resp`

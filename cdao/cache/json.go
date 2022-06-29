@@ -3,116 +3,70 @@ package cache
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"github.com/chuan-fu/Common/baseservice/jsonx"
 	"github.com/chuan-fu/Common/cdao"
 	"github.com/chuan-fu/Common/zlog"
-	"github.com/pkg/errors"
 )
 
 /*
 func defaultGetByDB(db *gorm.DB, id int64) GetByDBFunc {
-	return func(model interface{}) (data string, err error) {
-		err = cdao.FindById(db, id, model)
+	return func(model interface{}) error {
+		err := cdao.FindById(db, id, model)
 		if err != nil {
 			log.Error(err)
-			return
 		}
-		return "", nil
+		return err
 	}
 }
 */
 
-type (
-	GetJsonByCacheFunc func(ctx context.Context, b cdao.BaseRedisOp) (string, error)
-	SetJsonCacheFunc   func(ctx context.Context, b cdao.BaseRedisOp, v string) error
-	GetJsonByDBFunc    func(ctx context.Context, model interface{}) (string, error)
+/*
+model应为指针
+model传参错误 为开发中错误，不校验
+*/
 
-	BaseJsonCacheOption func(*BaseJsonCacheOptions)
-)
-
-func GetBaseJsonCache(ctx context.Context, op cdao.BaseRedisOp, model interface{}, getByDb GetJsonByDBFunc, opts ...BaseJsonCacheOption) (data string, err error) {
-	if reflect.TypeOf(model).Kind() != reflect.Ptr {
-		err = errors.New("Model需要为指针")
-		return
+func (c *CacheHandle) GetBaseJsonCache(ctx context.Context, op cdao.BaseRedisOp, model interface{}, getByDb GetJsonByDBFunc) (string, error) {
+	if c.sf == nil {
+		return GetBaseJsonCache(ctx, op, model, getByDb)
 	}
 
-	b := &BaseJsonCacheOptions{
-		Model: model, // 取指针
-
-		GetByCache: defaultGetJsonByCache,
-		SetCache:   defaultSetJsonCache,
-		DelCache:   defaultDelCache,
-	}
-	for _, opt := range opts {
-		opt(b)
-	}
-
-	data, err = b.GetByCache(ctx, op)
+	dataInter, err := c.sf.Do(op.GetKey(), func() (interface{}, error) {
+		return GetBaseJsonCache(ctx, op, model, getByDb)
+	})
 	if err != nil {
-		log.Error(errors.Wrap(err, "GetByCache"))
+		return "", err
+	}
+	return dataInter.(string), nil
+}
+
+func GetBaseJsonCache(ctx context.Context, op cdao.BaseRedisOp, model interface{}, getByDb GetJsonByDBFunc) (data string, err error) {
+	data, err = op.Get(ctx)
+	if err != nil {
+		log.Error("GetByCache:", err)
 	}
 	if data != "" {
-		if err = jsonx.UnmarshalObj(data, b.Model); err == nil { // 解析model并返回
+		if err = jsonx.UnmarshalObj(data, model); err == nil { // 解析model并返回
 			return data, nil
 		}
 
-		log.Error(errors.Wrap(err, fmt.Sprintf("Cache【%s】Unmarshal", data)))
-		err = b.DelCache(ctx, op) // 解析失败，缓存有误，删除
+		log.Error(fmt.Sprintf("Cache【%s】Unmarshal:", data), err)
+		err = op.Del(ctx) // 解析失败，缓存有误，删除
 		if err != nil {
-			log.Error(errors.Wrap(err, "DelCache"))
+			log.Error("DelCache:", err)
 		}
 	}
 
-	data, err = getByDb(ctx, b.Model) // 从db获取
+	err = getByDb(ctx, model) // 从db获取
 	if err != nil {
-		log.Error(errors.Wrap(err, "GetByDB"))
+		log.Error("GetByDB:", err)
 		return
 	}
+	data = jsonx.MarshalObj(model)
 
-	if data == "" {
-		data = jsonx.MarshalObj(b.Model)
-	}
-
-	err = b.SetCache(ctx, op, data) // 写入cache
-	if err != nil {
-		log.Error(errors.Wrap(err, "SetCache"))
-		return data, nil
+	// 写入cache
+	if err2 := op.Set(ctx, data); err2 != nil {
+		log.Error("SetCache:", err2)
 	}
 	return
-}
-
-func defaultGetJsonByCache(ctx context.Context, b cdao.BaseRedisOp) (string, error) {
-	return b.Get(ctx)
-}
-
-func defaultSetJsonCache(ctx context.Context, b cdao.BaseRedisOp, v string) error {
-	return b.Set(ctx, v)
-}
-
-type BaseJsonCacheOptions struct {
-	Model interface{}
-
-	GetByCache GetJsonByCacheFunc
-	SetCache   SetJsonCacheFunc
-	DelCache   DelCacheFunc
-}
-
-func WithGetJsonByCache(fn GetJsonByCacheFunc) BaseJsonCacheOption {
-	return func(opts *BaseJsonCacheOptions) {
-		opts.GetByCache = fn
-	}
-}
-
-func WithSetJsonCache(fn SetJsonCacheFunc) BaseJsonCacheOption {
-	return func(opts *BaseJsonCacheOptions) {
-		opts.SetCache = fn
-	}
-}
-
-func WithDelJsonCache(fn DelCacheFunc) BaseJsonCacheOption {
-	return func(opts *BaseJsonCacheOptions) {
-		opts.DelCache = fn
-	}
 }

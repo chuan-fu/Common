@@ -5,7 +5,6 @@ import (
 
 	"github.com/chuan-fu/Common/cdao"
 	"github.com/chuan-fu/Common/zlog"
-	"github.com/pkg/errors"
 )
 
 /*
@@ -16,67 +15,41 @@ func defaultGetByDB(db *gorm.DB, id int64) GetByDBFunc {
 }
 */
 
-type (
-	GetStringByCacheFunc func(ctx context.Context, b cdao.BaseRedisOp) (string, error)
-	SetStringCacheFunc   func(ctx context.Context, b cdao.BaseRedisOp, v string) error
-	GetStringByDBFunc    func(ctx context.Context) (string, error)
-
-	BaseStringCacheOption func(*BaseStringCacheOptions)
-)
-
-func GetBaseStringCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetStringByDBFunc, opts ...BaseStringCacheOption) (data string, err error) {
-	b := &BaseStringCacheOptions{
-		GetByCache: defaultGetStringByCache,
-		SetCache:   defaultSetStringCache,
+// 注意，不允许存入空字符串
+func (c *CacheHandle) GetBaseStringCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetStringByDBFunc) (string, error) {
+	if c.sf == nil {
+		return GetBaseStringCache(ctx, op, getByDb)
 	}
-	for _, opt := range opts {
-		opt(b)
+	dataInter, err := c.sf.Do(op.GetKey(), func() (interface{}, error) {
+		return GetBaseStringCache(ctx, op, getByDb)
+	})
+	if err != nil {
+		return "", err
 	}
+	return dataInter.(string), nil
+}
 
-	data, err = b.GetByCache(ctx, op)
+func GetBaseStringCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetStringByDBFunc) (data string, err error) {
+	data, err = op.Get(ctx)
 	if err == nil && data != "" {
 		return
 	}
 	if err != nil {
-		log.Error(errors.Wrap(err, "GetByCache"))
+		log.Error("GetByCache:", err)
 	}
 
 	data, err = getByDb(ctx) // 从db获取
 	if err != nil {
-		log.Error(errors.Wrap(err, "GetByDB"))
+		log.Error("GetByDB:", err)
 		return
 	}
 	if data == "" {
-		return "", errors.New("data为空，数据获取有误")
+		return "", BaseGetByDBDataNilError
 	}
 
-	if err2 := b.SetCache(ctx, op, data); err2 != nil { // 写入cache
-		log.Error(errors.Wrap(err2, "SetCache"))
+	// 写入cache
+	if err2 := op.Set(ctx, data); err2 != nil {
+		log.Error("SetCache:", err2)
 	}
 	return
-}
-
-func defaultGetStringByCache(ctx context.Context, b cdao.BaseRedisOp) (string, error) {
-	return b.Get(ctx)
-}
-
-func defaultSetStringCache(ctx context.Context, b cdao.BaseRedisOp, v string) error {
-	return b.Set(ctx, v)
-}
-
-type BaseStringCacheOptions struct {
-	GetByCache GetStringByCacheFunc
-	SetCache   SetStringCacheFunc
-}
-
-func WithGetStringByCache(fn GetStringByCacheFunc) BaseStringCacheOption {
-	return func(opts *BaseStringCacheOptions) {
-		opts.GetByCache = fn
-	}
-}
-
-func WithSetStringCache(fn SetStringCacheFunc) BaseStringCacheOption {
-	return func(opts *BaseStringCacheOptions) {
-		opts.SetCache = fn
-	}
 }

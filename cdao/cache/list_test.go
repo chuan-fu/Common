@@ -23,7 +23,7 @@ func A(obj interface{}) {
 
 func TestGetBaseListCache(t *testing.T) {
 	op := cdao.NewBaseRedisOp("list:A:1", time.Minute)
-	data, err := GetBaseListCache(context.TODO(), op, func(ctx context.Context) ([]string, error) {
+	data, err := C.GetBaseListCache(context.TODO(), op, func(ctx context.Context) ([]string, error) {
 		log.Info("getByDb")
 		return []string{"A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12"}, nil
 	})
@@ -31,10 +31,37 @@ func TestGetBaseListCache(t *testing.T) {
 }
 
 func TestGetBaseListCache3(t *testing.T) {
-	op := cdao.NewBaseRedisOp("list:A:3", time.Minute)
-	data, err := GetBaseListCache(context.TODO(), op, func(ctx context.Context) ([]string, error) {
+	op := cdao.NewBaseRedisOp("cache:zset:1", time.Minute)
+	data, err := C.GetBaseListCache(context.TODO(), op, func(ctx context.Context) ([]string, error) {
 		log.Info("getByDb")
-		return []string{"a,b", "c,d"}, nil
-	}, WithSetListPage(1, 10))
+		return []string{"AA", "BB", "CC", "D", "EE", "F"}, nil
+	})
+	fmt.Println(data, err)
+}
+
+func TestGetBaseListCacheEntry(t *testing.T) {
+	op := cdao.NewBaseRedisOp("cache:zset:entry", time.Minute)
+	data, err := C.GetBaseListCache(context.TODO(), op, func(ctx context.Context) ([]string, error) {
+		log.Info("getByDb")
+		return []string{}, nil
+	})
+	fmt.Println(data, err)
+}
+
+func TestGetBaseListCacheWithPage(t *testing.T) {
+	op := cdao.NewBaseRedisOp("cache:zset:1", time.Minute)
+	data, err := C.GetBaseListCacheWithPage(context.TODO(), op, func(ctx context.Context) ([]string, error) {
+		log.Info("getByDb")
+		return []string{"AA", "BB", "CC", "D", "EE", "F"}, nil
+	}, 3, 3)
+	fmt.Println(data, err)
+}
+
+func TestGetBaseListCacheWithPageEntry(t *testing.T) {
+	op := cdao.NewBaseRedisOp("cache:zset:entry", time.Minute)
+	data, err := C.GetBaseListCacheWithPage(context.TODO(), op, func(ctx context.Context) ([]string, error) {
+		log.Info("getByDb")
+		return []string{}, nil
+	}, 1, 3)
 	fmt.Println(data, err)
 }
