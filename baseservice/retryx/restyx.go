@@ -1,4 +1,4 @@
-package util
+package retryx
 
 import (
 	"context"
@@ -7,13 +7,63 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/chuan-fu/Common/util"
+
 	"github.com/chuan-fu/Common/baseservice/stringx"
 
 	"github.com/pkg/errors"
 	"gopkg.in/resty.v1"
 )
 
-var globalClient *resty.Client
+type Client struct {
+	*resty.Client
+	headers map[string]string
+	check   CheckRespService
+}
+
+type Option func(c *Client)
+
+func WithResty(client *resty.Client) Option {
+	return func(c *Client) {
+		if client != nil {
+			c.Client = client
+		}
+	}
+}
+
+func WithHeaders(h map[string]string) Option {
+	return func(c *Client) {
+		c.headers = h
+	}
+}
+
+// CheckRespService 使用请谨慎，使用之后，所有带Result的请求都会校验该规则
+func WithCheckResp(check CheckRespService) Option {
+	return func(c *Client) {
+		c.check = check
+	}
+}
+
+var globalClient = &Client{Client: resty.New()}
+
+func SetClient(c *Client) {
+	globalClient = c
+}
+
+func GetClient() *Client {
+	return globalClient
+}
+
+func NewClient(opts ...Option) *Client {
+	c := &Client{}
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.Client == nil {
+		c.Client = resty.New()
+	}
+	return c
+}
 
 const (
 	defaultTimeOut       = 5 * time.Second
@@ -21,52 +71,26 @@ const (
 	defaultRetryWaitTime = time.Second
 )
 
-func init() {
-	globalClient = resty.New()
-	globalClient.SetTimeout(defaultTimeOut)
-	globalClient.SetRetryCount(defaultRetryCount)
-	globalClient.SetRetryWaitTime(defaultRetryWaitTime)
-	globalClient.AddRetryCondition(func(resp *resty.Response) (isRetry bool, err error) {
+func NewResty() *resty.Client {
+	return resty.New()
+}
+
+func NewRestyWithThreeRetry() *resty.Client {
+	client := resty.New()
+	client.SetTimeout(defaultTimeOut)
+	client.SetRetryCount(defaultRetryCount)
+	client.SetRetryWaitTime(defaultRetryWaitTime)
+	client.AddRetryCondition(func(resp *resty.Response) (isRetry bool, err error) {
 		if resp == nil || resp.StatusCode() != http.StatusOK {
 			return true, nil
 		}
 		return false, nil
 	})
-}
-
-// 新建空client
-func NewResty() *resty.Client {
-	return resty.New()
-}
-
-// 覆盖全局client
-func SetGlobalResty(c *resty.Client) {
-	globalClient = c
-}
-
-// 空client覆盖全局 PS:不重试
-func SetNewGlobalResty() {
-	globalClient = NewResty()
-}
-
-type Client struct {
-	c       *resty.Client
-	headers map[string]string
-}
-
-// 新建client
-func NewClient(c *resty.Client, headers map[string]string) *Client {
-	return &Client{c: c, headers: headers}
-}
-
-// 默认client
-// 重试3次，每次间隔1s，超时5s
-func Cli(headers map[string]string) *Client {
-	return &Client{c: globalClient, headers: headers}
+	return client
 }
 
 func (c *Client) post(ctx context.Context, url string, body, result interface{}) ([]byte, error) {
-	resp, err := c.c.R().
+	resp, err := c.R().
 		SetContext(ctx).
 		SetHeaders(c.headers).
 		SetBody(body).
@@ -82,7 +106,7 @@ func (c *Client) post(ctx context.Context, url string, body, result interface{})
 }
 
 func (c *Client) get(ctx context.Context, url string, result interface{}) ([]byte, error) {
-	resp, err := c.c.R().
+	resp, err := c.R().
 		SetContext(ctx).
 		SetHeaders(c.headers).
 		SetResult(result).
@@ -101,10 +125,15 @@ func (c *Client) Post(ctx context.Context, url string, body interface{}) ([]byte
 }
 
 func (c *Client) PostResult(ctx context.Context, url string, body, result interface{}) ([]byte, error) {
-	return c.post(ctx, url, body, result)
+	resp, err := c.post(ctx, url, body, result)
+	if err == nil && c.check != nil {
+		return resp, c.check.Check(result)
+	}
+	return resp, err
 }
 
-func (c *Client) PostCheckResult(ctx context.Context, url string, body, result interface{}, check CheckTypeService) ([]byte, error) {
+// 不使用全局check，单独传入
+func (c *Client) PostCheckResult(ctx context.Context, url string, body, result interface{}, check CheckRespService) ([]byte, error) {
 	resp, err := c.post(ctx, url, body, result)
 	if err == nil && check != nil {
 		return resp, check.Check(result)
@@ -117,10 +146,14 @@ func (c *Client) Get(ctx context.Context, url string) ([]byte, error) {
 }
 
 func (c *Client) GetResult(ctx context.Context, url string, result interface{}) ([]byte, error) {
-	return c.get(ctx, url, result)
+	resp, err := c.get(ctx, url, result)
+	if err == nil && c.check != nil {
+		return resp, c.check.Check(result)
+	}
+	return resp, err
 }
 
-func (c *Client) GetCheckResult(ctx context.Context, url string, result interface{}, check CheckTypeService) ([]byte, error) {
+func (c *Client) GetCheckResult(ctx context.Context, url string, result interface{}, check CheckRespService) ([]byte, error) {
 	resp, err := c.get(ctx, url, result)
 	if err == nil && check != nil {
 		return resp, check.Check(result)
@@ -128,7 +161,7 @@ func (c *Client) GetCheckResult(ctx context.Context, url string, result interfac
 	return resp, err
 }
 
-type CheckTypeService interface {
+type CheckRespService interface {
 	Check(resp interface{}) error
 }
 
@@ -138,7 +171,7 @@ type CheckResp struct {
 }
 
 // 是字段名称，不是tag，具体参考下面的example
-func NewCheckResp(codeKey, msgKey string, successCode int64) CheckTypeService {
+func NewCheckResp(codeKey, msgKey string, successCode int64) CheckRespService {
 	return &CheckResp{
 		codeKey:     codeKey,
 		msgKey:      msgKey,
@@ -147,7 +180,7 @@ func NewCheckResp(codeKey, msgKey string, successCode int64) CheckTypeService {
 }
 
 func (c *CheckResp) Check(resp interface{}) error {
-	if resp = Indirect(resp); resp == nil {
+	if resp = util.Indirect(resp); resp == nil {
 		return errors.New("CheckResp: resp is nil")
 	}
 	rt := reflect.TypeOf(resp)

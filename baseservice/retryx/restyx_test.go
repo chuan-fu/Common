@@ -1,4 +1,4 @@
-package util
+package retryx
 
 import (
 	"context"
@@ -7,22 +7,22 @@ import (
 )
 
 func TestGet(t *testing.T) {
-	SetGlobalResty(NewResty())
-	cli := Cli(map[string]string{
-		"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDk5MzEyMjEsImlhdCI6MTY0OTg0NDgyMSwidXNlciI6eyJ0aW1lc3RhbXAiOiIxNjQ5ODQ0ODIxMjI2MjMxODA1IiwidXNlcl9pZCI6NTU4Njg0OH19.sbcm4t318D2qywy7jAWlM_EoRrYyFi5nRRlIjU6N-3A",
-	})
+	cli := NewClient(WithHeaders(map[string]string{
+		"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTY2NDEyMTQsImlhdCI6MTY1NjU1NDgxNCwidXNlciI6eyJ0aW1lc3RhbXAiOiIxNjU2NTU0ODE0ODUyNzc0MjQ1IiwidXNlcl9pZCI6NTU4Njg0OH19.pLHQmRpNelktD-3Ch_Z-WJcvXjdY3yXDOwZJguHN_GI",
+	}), WithCheckResp(NewCheckResp("Code", "Msg", 0)))
+
 	url := "http://goapi.dlab.cn/dpm/bms/station_letter/list"
 
 	var r Tools14
-	f := NewCheckResp("Code", "Msg", 0)
-	_ = f
-	data, err := cli.PostCheckResult(context.TODO(), url, &Tools13{
+	data, err := cli.PostResult(context.TODO(), url, &Tools13{
 		PageIndex: 1,
 		PageSize:  10,
-	}, &r, f)
+	}, &r)
 	fmt.Println(err)
-	fmt.Println(string(data))
-	fmt.Printf("%+v", r)
+	if err == nil {
+		fmt.Println(string(data))
+		fmt.Printf("%+v", r)
+	}
 }
 
 type Tools13 struct {
