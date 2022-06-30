@@ -48,7 +48,7 @@ func (t *TimeX) FormatToday() string {
 	return t.t.Format(cdefs.DayFormat)
 }
 
-func (t *TimeX) FormatTime() string {
+func (t *TimeX) FormatNow() string {
 	return t.t.Format(cdefs.TimeFormat)
 }
 
@@ -118,7 +118,7 @@ func TodayFormat() string {
 	return time.Now().Format(cdefs.DayFormat)
 }
 
-func TimeFormat() string {
+func NowFormat() string {
 	return time.Now().Format(cdefs.TimeFormat)
 }
 
