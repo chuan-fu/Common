@@ -14,17 +14,16 @@ func TestI6(t *testing.T) {
 }
 
 func TestDeduplice(t *testing.T) {
-	fmt.Println(Deduplice([]int64{}))
-	fmt.Println(Deduplice([]int64{1}))
-	fmt.Println(Deduplice([]int64{0, 0, 0}))
-	fmt.Println(Deduplice([]int64{1, 1, 1}))
-	fmt.Println(Deduplice([]int64{1, 1, 2}))
-	fmt.Println(Deduplice([]int64{1, 2, 2}))
-	fmt.Println(Deduplice([]int64{-1, 1, -1}))
-	fmt.Println(Deduplice([]int64{2, 3, 1, 4, 6, 5, 5}))
-	fmt.Println(Deduplice([]float64{2, 3, 1, 4, 6, 5, 5}))
-	fmt.Println(Deduplice([]int{2, 3, 1, 4, 6, 5, 5}))
-	fmt.Println(Deduplice([]byte{2, 3, 1, 4, 6, 5, 5}))
+	fmt.Println(DistinctInt64([]int64{}))
+	fmt.Println(DistinctInt64([]int64{1}))
+	fmt.Println(DistinctInt64([]int64{0, 0, 0}))
+	fmt.Println(DistinctInt64([]int64{1, 1, 1}))
+	fmt.Println(DistinctInt64([]int64{1, 1, 2}))
+	fmt.Println(DistinctInt64([]int64{1, 2, 2}))
+	fmt.Println(DistinctInt64([]int64{-1, 1, -1}))
+	fmt.Println(DistinctInt64([]int64{2, 3, 1, 4, 6, 5, 5}))
+	fmt.Println(DistinctFloat64([]float64{2, 3, 1, 4, 6, 5, 5}))
+	fmt.Println(DistinctInt([]int{2, 3, 1, 4, 6, 5, 5}))
 }
 
 func TestI(t *testing.T) {

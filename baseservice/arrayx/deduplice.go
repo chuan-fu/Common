@@ -1,32 +1,16 @@
 package arrayx
 
-const (
-	two = 2
-)
+/*
+	排序+去重
+*/
 
-// 排序+去重
-func Deduplice(listInter interface{}) interface{} {
-	switch list := listInter.(type) {
-	case []int64:
-		return DedupliceInt64(list)
-	case []int:
-		return DedupliceInt(list)
-	case []float64:
-		return DedupliceFloat64(list)
-	case []string:
-		return DedupliceString(list)
-	default:
-		return nil
-	}
+func DistinctInt64(list []int64) []int64 {
+	return list[:DistinctInt64Index(list)]
 }
 
-func DedupliceInt64(list []int64) []int64 {
-	return list[:DedupliceInt64Index(list)]
-}
-
-func DedupliceInt64Index(list []int64) int {
+func DistinctInt64Index(list []int64) int {
 	num := len(list)
-	if num < two {
+	if num < 2 {
 		return num
 	}
 	Int64(list) // sort
@@ -41,13 +25,13 @@ func DedupliceInt64Index(list []int64) int {
 	return index
 }
 
-func DedupliceInt(list []int) []int {
-	return list[:DedupliceIntIndex(list)]
+func DistinctInt(list []int) []int {
+	return list[:DistinctIntIndex(list)]
 }
 
-func DedupliceIntIndex(list []int) int {
+func DistinctIntIndex(list []int) int {
 	num := len(list)
-	if num < two {
+	if num < 2 {
 		return num
 	}
 	Int(list) // sort
@@ -62,13 +46,13 @@ func DedupliceIntIndex(list []int) int {
 	return index
 }
 
-func DedupliceFloat64(list []float64) []float64 {
-	return list[:DedupliceFloat64Index(list)]
+func DistinctFloat64(list []float64) []float64 {
+	return list[:DistinctFloat64Index(list)]
 }
 
-func DedupliceFloat64Index(list []float64) int {
+func DistinctFloat64Index(list []float64) int {
 	num := len(list)
-	if num < two {
+	if num < 2 {
 		return num
 	}
 	Float64(list) // sort
@@ -83,13 +67,13 @@ func DedupliceFloat64Index(list []float64) int {
 	return index
 }
 
-func DedupliceString(list []string) []string {
-	return list[:DedupliceStringIndex(list)]
+func DistinctString(list []string) []string {
+	return list[:DistinctStringIndex(list)]
 }
 
-func DedupliceStringIndex(list []string) int {
+func DistinctStringIndex(list []string) int {
 	num := len(list)
-	if num < two {
+	if num < 2 {
 		return num
 	}
 	String(list) // sort

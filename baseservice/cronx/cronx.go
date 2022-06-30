@@ -1,4 +1,4 @@
-package cron
+package cronx
 
 import (
 	"github.com/chuan-fu/Common/baseservice/mutex"
@@ -23,17 +23,17 @@ func RunCronTask(tasks ...*cronTask) {
 		}
 
 		hasTask = true
-		log.Infof("RunCronTask AddFunc spce:%s , name:%s", v.spec, v.name)
+		log.Infof("6ngr1it12hg8 RunCronTask AddFunc spce:%s , name:%s", v.spec, v.name)
 		err := crontab.AddFunc(v.spec, func() func() {
 			if v.onceKey != "" {
 				distributedOnce := mutex.NewDistributedOnce(v.onceKey, v.opts...)
 				return func() {
-					log.Infof("RunCronTask TaskRun once spce:%s , name:%s", v.spec, v.name)
+					log.Infof("6ngr1it12hg8 RunCronTask TaskRun once spce:%s , name:%s", v.spec, v.name)
 					distributedOnce.Do(v.cmd)
 				}
 			}
 			return func() {
-				log.Infof("RunCronTask TaskRun spce:%s , name:%s", v.spec, v.name)
+				log.Infof("6ngr1it12hg8 RunCronTask TaskRun spce:%s , name:%s", v.spec, v.name)
 				v.cmd()
 			}
 		}())
@@ -43,7 +43,7 @@ func RunCronTask(tasks ...*cronTask) {
 	}
 
 	if hasTask {
-		log.Info("RunCronTask Start")
+		log.Info("6ngr1it12hg8 RunCronTask Start")
 		crontab.Start()
 	}
 }

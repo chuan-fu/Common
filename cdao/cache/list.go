@@ -3,6 +3,8 @@ package cache
 import (
 	"context"
 
+	"github.com/chuan-fu/Common/baseservice/syncx"
+
 	"github.com/chuan-fu/Common/cdao"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/pkg/errors"
@@ -11,37 +13,18 @@ import (
 /*
 使用zset存储，cache使用覆盖式写入防止重复
 如getByDb为空，cache会写入一个空字符串
+list的单飞和别的不一样，因为存在行数、列数，需要在读取db时使用，而不能是在外层使用
 */
 
 func (c *CacheHandle) GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListByDBFunc) ([]string, error) {
-	if c.sf == nil {
-		return GetBaseListCache(ctx, op, getByDb)
-	}
-
-	dataInter, err := c.sf.Do(op.GetKey(), func() (interface{}, error) {
-		return GetBaseListCache(ctx, op, getByDb)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return dataInter.([]string), nil
+	return GetBaseListCache(ctx, op, getByDb, c.sf)
 }
 
 func (c *CacheHandle) GetBaseListCacheWithPage(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListByDBFunc, pageIndex, pageSize int64) ([]string, error) {
-	if c.sf == nil {
-		return GetBaseListCacheWithPage(ctx, op, getByDb, pageIndex, pageSize)
-	}
-
-	dataInter, err := c.sf.Do(op.GetKey(), func() (interface{}, error) {
-		return GetBaseListCacheWithPage(ctx, op, getByDb, pageIndex, pageSize)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return dataInter.([]string), nil
+	return GetBaseListCacheWithPage(ctx, op, getByDb, pageIndex, pageSize, c.sf)
 }
 
-func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListByDBFunc) (resp []string, err error) {
+func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListByDBFunc, sf syncx.SingleFight) (resp []string, err error) {
 	var has bool
 	resp, has, err = op.ZGetAll(ctx)
 	if err == nil && has { // 缓存存在
@@ -54,14 +37,14 @@ func GetBaseListCache(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListB
 		log.Error("GetByCache:", err)
 	}
 
-	resp, err = getAndSetList(ctx, op, getByDb)
+	resp, err = getAndSetList(ctx, op, getByDb, sf)
 	if err != nil {
 		log.Error(err)
 	}
 	return
 }
 
-func GetBaseListCacheWithPage(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListByDBFunc, pageIndex, pageSize int64) (resp []string, err error) {
+func GetBaseListCacheWithPage(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListByDBFunc, pageIndex, pageSize int64, sf syncx.SingleFight) (resp []string, err error) {
 	if pageIndex < 1 || pageSize < 1 {
 		return resp, errors.New("pageIndex、pageSize有误")
 	}
@@ -78,7 +61,7 @@ func GetBaseListCacheWithPage(ctx context.Context, op cdao.BaseRedisOp, getByDb 
 		log.Error("GetByCache:", err)
 	}
 
-	resp, err = getAndSetList(ctx, op, getByDb)
+	resp, err = getAndSetList(ctx, op, getByDb, sf)
 	if err != nil {
 		log.Error(err)
 		return
@@ -97,22 +80,36 @@ func GetBaseListCacheWithPage(ctx context.Context, op cdao.BaseRedisOp, getByDb 
 	return resp[start:stop], nil
 }
 
-func getAndSetList(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListByDBFunc) (resp []string, err error) {
-	resp, err = getByDb(ctx)
-	if err != nil {
-		log.Error("GetByDB:", err)
-		return
+func getAndSetList(ctx context.Context, op cdao.BaseRedisOp, getByDb GetListByDBFunc, sf syncx.SingleFight) ([]string, error) {
+	f := func() (interface{}, error) {
+		resp, err := getByDb(ctx)
+		if err != nil {
+			log.Error("GetByDB:", err)
+			return nil, err
+		}
+
+		// 写入缓存
+		if len(resp) == 0 {
+			if err2 := op.ZAddCoverStringList(ctx, entryList); err2 != nil { // 空缓存处理
+				log.Error("SetCache:", err2)
+			}
+		} else {
+			if err2 := op.ZAddCoverStringList(ctx, resp); err2 != nil {
+				log.Error("SetCache:", err2)
+			}
+		}
+		return resp, nil
 	}
 
-	// 写入缓存
-	var err2 error
-	if len(resp) == 0 {
-		err2 = op.ZAddCoverStringList(ctx, entryList) // 空缓存处理
+	var dataInter interface{}
+	var err error
+	if sf != nil {
+		dataInter, err = sf.Do(op.GetKey(), f)
 	} else {
-		err2 = op.ZAddCoverStringList(ctx, resp)
+		dataInter, err = f()
 	}
-	if err2 != nil {
-		log.Error("SetCache:", err2)
+	if err != nil {
+		return nil, err
 	}
-	return
+	return dataInter.([]string), nil
 }

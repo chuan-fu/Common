@@ -82,7 +82,7 @@ func (b *baseRedisOp) Get(ctx context.Context) (string, error) {
 		return "", errors.Wrap(err, "BaseRedisOp Get")
 	}
 	if data != "" {
-		log.Debugf("cache【%s】存在", b.key)
+		log.Debugf("mskp99b36zxm cache【%s】存在", b.key)
 	}
 	return data, nil
 }
@@ -96,7 +96,7 @@ func (b *baseRedisOp) GetResult(ctx context.Context, v interface{}) error {
 	if data == "" {
 		return nil
 	}
-	log.Debugf("cache【%s】存在", b.key)
+	log.Debugf("mskp99b36zxm cache【%s】存在", b.key)
 	return jsonx.Unmarshal(data, v)
 }
 
@@ -164,7 +164,7 @@ func (b *baseRedisOp) ZGetAll(ctx context.Context) (data []string, has bool, err
 	if IsRedisNil(err) { // 返回空代表不存在
 		return nil, false, nil
 	}
-	log.Debugf("cache【%s】存在", b.key)
+	log.Debugf("mskp99b36zxm cache【%s】存在", b.key)
 	return toStringList(dataInter), true, nil
 }
 
@@ -181,7 +181,7 @@ func (b *baseRedisOp) ZRangeStringList(ctx context.Context, start, stop int64) (
 	if _, ok := dataInter.(int64); ok { // 如果key不存在，返回一个int64类型的数字 0
 		return
 	}
-	log.Debugf("cache【%s】存在", b.key)
+	log.Debugf("mskp99b36zxm cache【%s】存在", b.key)
 	return toStringList(dataInter), true, nil
 }
 
@@ -219,7 +219,7 @@ func (b *baseRedisOp) SGetAll(ctx context.Context) (data []string, err error) {
 		return
 	}
 	if len(data) > 0 {
-		log.Debugf("cache【%s】存在", b.key)
+		log.Debugf("mskp99b36zxm cache【%s】存在", b.key)
 	}
 	return
 }

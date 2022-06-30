@@ -12,8 +12,13 @@ type StringIncrease struct {
 	f        StringSetFunc
 	duration time.Duration
 
-	c         chan string
-	bufferLen int // chan容量大小
+	c chan string
+
+	// 预设的缓冲区容量bufferLen，也为最小容量，请慎重设置
+	// 容量设置如果太小会频繁触发写入，太多则会增加内存消耗
+	// 单位时间内，如果缓存区真实存入个数小于bufferLen，则会把下次缓冲区容量设置为bufferLen
+	// 如果真实存入个数大于bufferLen，则会设置为 真实存入个数的1.25倍
+	bufferLen int
 }
 
 func NewStringIncrease(f StringSetFunc, duration time.Duration, buffLen int) *StringIncrease {
@@ -70,6 +75,7 @@ func (s *StringIncrease) start() {
 	}
 }
 
+// 缓冲区容量
 // 预设为容量/上次间隔内写入个数的1.25倍
 // 如果小于初始bufferLen，设为bufferLen
 func (s *StringIncrease) calcMax(num int) int {

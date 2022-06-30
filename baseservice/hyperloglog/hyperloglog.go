@@ -11,6 +11,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+/*
+	基数统计功能，配置了异步写入、批量写入等功能
+*/
+
 type HyperLogLogOp interface {
 	AsynAdd(data ...string) error
 	Add(ctx context.Context, els ...interface{}) error
@@ -20,6 +24,7 @@ type HyperLogLogOp interface {
 
 type Option func(h *hyperLogLog)
 
+// buffLen参数设置请参考 baseservice/batch/string.go:21
 func WithBatch(duration time.Duration, buffLen int) Option {
 	return func(h *hyperLogLog) {
 		h.batch = batch.NewStringIncrease(h.add, duration, buffLen)

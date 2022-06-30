@@ -22,7 +22,7 @@ func A(obj interface{}) {
 }
 
 func TestGetBaseListCache(t *testing.T) {
-	op := cdao.NewBaseRedisOp("list:A:1", time.Minute)
+	op := cdao.NewBaseRedisOp("cache:zset:1", time.Minute)
 	data, err := C.GetBaseListCache(context.TODO(), op, func(ctx context.Context) ([]string, error) {
 		log.Info("getByDb")
 		return []string{"A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12"}, nil
@@ -53,7 +53,7 @@ func TestGetBaseListCacheWithPage(t *testing.T) {
 	data, err := C.GetBaseListCacheWithPage(context.TODO(), op, func(ctx context.Context) ([]string, error) {
 		log.Info("getByDb")
 		return []string{"AA", "BB", "CC", "D", "EE", "F"}, nil
-	}, 3, 3)
+	}, 1, 3)
 	fmt.Println(data, err)
 }
 
