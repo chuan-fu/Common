@@ -12,7 +12,7 @@ import (
 
 func init() {
 	err := redis.ConnectRedis(redis.RedisConf{
-		Addr: "127.0.0.1:6379",
+		Addr: []string{"127.0.0.1:6379"},
 	})
 	if err != nil {
 		log.Fatal(err)

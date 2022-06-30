@@ -44,7 +44,7 @@ func (t *TimeX) Format(layout string) string {
 	return t.t.Format(layout)
 }
 
-func (t *TimeX) FormatDay() string {
+func (t *TimeX) FormatToday() string {
 	return t.t.Format(cdefs.DayFormat)
 }
 
@@ -112,6 +112,14 @@ func (t *TimeX) SubPrintln(u time.Time) {
 
 func Now() int64 {
 	return time.Now().Unix()
+}
+
+func TodayFormat() string {
+	return time.Now().Format(cdefs.DayFormat)
+}
+
+func TimeFormat() string {
+	return time.Now().Format(cdefs.TimeFormat)
 }
 
 // 计算耗时 now() > t

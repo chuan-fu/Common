@@ -14,7 +14,8 @@ type Config struct {
 }
 
 redis:
-	addr: 127.0.0.1:6379
+	addr:
+	  - 127.0.0.1:6379
 	password:
 	db: 0
 
