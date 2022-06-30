@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chuan-fu/Common/util"
+	"github.com/chuan-fu/Common/baseservice/restyx"
 	"github.com/pkg/errors"
 )
 
@@ -13,7 +13,7 @@ func post(ctx context.Context, key string, data *Message) error {
 	url := fmt.Sprintf("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=%s", key)
 
 	var res RobotResponse
-	if _, err := util.Cli(nil).PostResult(ctx, url, data, &res); err != nil {
+	if _, err := restyx.PostResult(ctx, url, data, &res); err != nil {
 		return errors.Wrap(err, "请求出错")
 	}
 	if res.ErrorCode != 0 {

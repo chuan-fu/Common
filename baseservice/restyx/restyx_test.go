@@ -1,4 +1,4 @@
-package retryx
+package restyx
 
 import (
 	"context"

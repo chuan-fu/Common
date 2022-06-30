@@ -1,4 +1,4 @@
-package retryx
+package restyx
 
 import (
 	"context"
@@ -7,10 +7,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/chuan-fu/Common/util"
-
 	"github.com/chuan-fu/Common/baseservice/stringx"
-
+	"github.com/chuan-fu/Common/util"
 	"github.com/pkg/errors"
 	"gopkg.in/resty.v1"
 )
@@ -63,6 +61,30 @@ func NewClient(opts ...Option) *Client {
 		c.Client = resty.New()
 	}
 	return c
+}
+
+func Post(ctx context.Context, url string, body interface{}) ([]byte, error) {
+	return globalClient.Post(ctx, url, body)
+}
+
+func PostResult(ctx context.Context, url string, body, result interface{}) ([]byte, error) {
+	return globalClient.PostResult(ctx, url, body, result)
+}
+
+func PostCheckResult(ctx context.Context, url string, body, result interface{}, check CheckRespService) ([]byte, error) {
+	return globalClient.PostCheckResult(ctx, url, body, result, check)
+}
+
+func Get(ctx context.Context, url string) ([]byte, error) {
+	return globalClient.Get(ctx, url)
+}
+
+func GetResult(ctx context.Context, url string, result interface{}) ([]byte, error) {
+	return globalClient.GetResult(ctx, url, result)
+}
+
+func GetCheckResult(ctx context.Context, url string, result interface{}, check CheckRespService) ([]byte, error) {
+	return globalClient.GetCheckResult(ctx, url, result, check)
 }
 
 const (

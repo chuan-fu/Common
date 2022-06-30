@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/chuan-fu/Common/util"
+	"github.com/chuan-fu/Common/baseservice/restyx"
 	"github.com/pkg/errors"
 )
 
 // post post请求
 func post(ctx context.Context, data *Message) error {
 	var res Result
-	if _, err := util.Cli(nil).PostResult(ctx, uri, data, &res); err != nil {
+	if _, err := restyx.PostResult(ctx, uri, data, &res); err != nil {
 		return errors.Wrap(err, "请求出错")
 	}
 	if res.Code != 200 {
