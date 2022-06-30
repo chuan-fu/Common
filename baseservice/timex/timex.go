@@ -44,11 +44,11 @@ func (t *TimeX) Format(layout string) string {
 	return t.t.Format(layout)
 }
 
-func (t *TimeX) FormatToday() string {
+func (t *TimeX) FormatDay() string {
 	return t.t.Format(cdefs.DayFormat)
 }
 
-func (t *TimeX) FormatNow() string {
+func (t *TimeX) FormatTime() string {
 	return t.t.Format(cdefs.TimeFormat)
 }
 
