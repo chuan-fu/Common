@@ -6,6 +6,11 @@ const (
 )
 
 const (
+	HalfWidthComma     = "," // 半角逗号
+	HalfWidthCommaByte = ',' // 半角逗号
+)
+
+const (
 	NoneStr      = ""
 	NoneArrayStr = "[]"
 	NoneObjStr   = "{}"
