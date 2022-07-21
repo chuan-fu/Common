@@ -16,6 +16,8 @@ const (
 	stateRun   = 0
 	stateWait  = 1
 	stateClose = 2
+
+	waitInterval = 100 * time.Millisecond
 )
 
 type ServerCloseMiddleware struct {
@@ -58,7 +60,7 @@ func (g *ServerCloseMiddleware) ShutDown() {
 		if atomic.LoadInt32(&g.state) == stateClose && atomic.LoadInt32(&g.reqNum) == 0 {
 			return
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(waitInterval)
 	}
 }
 
