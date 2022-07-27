@@ -65,6 +65,7 @@ func KeyboardX(f Task, opts ...Option) error {
 
 		switch event.Key {
 		case keyboard.KeyEnter:
+			fmt.Println()
 			newTab.close()
 			if str.Len() > 0 {
 				s := str.String()
@@ -80,10 +81,9 @@ func KeyboardX(f Task, opts ...Option) error {
 						return nil
 					}
 				} else {
-					fmt.Print("\n---未搜索到任务---")
+					fmt.Println("---未搜索到任务---")
 				}
 			}
-			fmt.Println()
 			fmt.Print(c.prefix)
 		case keyboard.KeySpace:
 			str.WriteString(space)
