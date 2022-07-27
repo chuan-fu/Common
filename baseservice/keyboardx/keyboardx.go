@@ -37,7 +37,6 @@ func KeyboardX(f Task, opts ...Option) error {
 		log.Error(err)
 		return err
 	}
-	defer keyboard.Close()
 
 	str := bytes.Buffer{}
 	var isEnd bool
