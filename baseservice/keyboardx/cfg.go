@@ -12,6 +12,7 @@ type config struct {
 	bufferSize int      // 缓冲区
 	cmdList    []string // 默认指令
 	taskSvc    TaskService
+	emptyEnter Task // 空回车逻辑处理
 }
 
 type Option func(c *config)
@@ -56,5 +57,11 @@ func WithCmdList(cmdList []string) Option {
 func WithTask(taskSvc TaskService) Option {
 	return func(c *config) {
 		c.taskSvc = taskSvc
+	}
+}
+
+func WithEmptyEnter(t Task) Option {
+	return func(c *config) {
+		c.emptyEnter = t
 	}
 }

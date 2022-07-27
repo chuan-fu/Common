@@ -64,15 +64,19 @@ func KeyboardX(f Task, opts ...Option) error {
 
 				if task := checkTask(s); task != nil {
 					isEnd, err = task(s)
-					if err != nil {
-						log.Error(err)
-					}
-					if isEnd {
-						return nil
-					}
 				} else {
 					fmt.Println("---未搜索到任务---")
 				}
+			} else { // 空回车处理
+				if c.emptyEnter != nil {
+					isEnd, err = c.emptyEnter("")
+				}
+			}
+			if err != nil {
+				log.Error(err)
+			}
+			if isEnd {
+				return nil
 			}
 			fmt.Print(c.prefix)
 		case keyboard.KeySpace:
