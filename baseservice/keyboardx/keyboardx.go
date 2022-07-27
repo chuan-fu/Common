@@ -14,21 +14,11 @@ const (
 	grepReplace = `%c[1;31m%s%c[0m` // 颜色替换 0x1B[0;31m %s 0x1B[0m
 )
 
-//func main() {
-//	err := KeyboardX(func(s string) (isEnd bool, err error) {
-//		fmt.Print("\nout => ", s)
-//		return
-//	}, WithCmdList([]string{"test", "dev"}), WithTask(NewTaskService().AddFullyTask("test", func(s string) (isEnd bool, err error) {
-//		fmt.Println("test测试")
-//		return
-//	})))
-//	if err != nil {
-//		log.Error(err)
-//		return
-//	}
-//}
-
 type Task func(s string) (isEnd bool, err error)
+
+func Exit(s string) (isEnd bool, err error) {
+	return true, nil
+}
 
 func KeyboardX(f Task, opts ...Option) error {
 	c := buildConfig(opts)
