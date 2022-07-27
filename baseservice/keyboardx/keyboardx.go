@@ -206,6 +206,11 @@ func (c *commandHistory) setIndex(i int) string {
 }
 
 func (c *commandHistory) add(s string) {
+	if c.sum > 0 {
+		if c.commandList[c.sum-1] == s {
+			return
+		}
+	}
 	c.commandList = append(c.commandList, s)
 	c.sum++
 	c.index = c.sum
