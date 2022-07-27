@@ -52,8 +52,8 @@ func KeyboardX(f Task, opts ...Option) error {
 	str := bytes.Buffer{}
 	var isEnd bool
 
-	cmd := NewCommandHistory(c.cmdList, c.grep)
-	newTab := NewTab()
+	cmd := newCommandHistory(c.cmdList, c.grep)
+	newTab := newTabSvc()
 
 	fmt.Print(c.prefix)
 
@@ -151,23 +151,23 @@ func KeyboardX(f Task, opts ...Option) error {
 	}
 }
 
-type tab struct {
+type tabSvc struct {
 	isTab    bool
 	tabStr   string
 	tabIndex int
 }
 
-func NewTab() *tab {
-	return &tab{}
+func newTabSvc() *tabSvc {
+	return &tabSvc{}
 }
 
-func (t *tab) close() {
+func (t *tabSvc) close() {
 	if t.isTab {
 		t.isTab = false
 	}
 }
 
-func (t *tab) run(s string) (string, int) {
+func (t *tabSvc) run(s string) (string, int) {
 	if !t.isTab {
 		t.init(s)
 	} else {
@@ -176,7 +176,7 @@ func (t *tab) run(s string) (string, int) {
 	return t.tabStr, t.tabIndex
 }
 
-func (t *tab) init(s string) {
+func (t *tabSvc) init(s string) {
 	t.isTab = true
 	t.tabStr = s
 	t.tabIndex = 0
@@ -188,7 +188,7 @@ type commandHistory struct {
 	grep        int
 }
 
-func NewCommandHistory(cmdList []string, grep int) *commandHistory {
+func newCommandHistory(cmdList []string, grep int) *commandHistory {
 	return &commandHistory{
 		commandList: cmdList,
 		sum:         len(cmdList),
