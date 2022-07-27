@@ -4,7 +4,9 @@ import "strings"
 
 type TaskService interface {
 	AddFullyTask(key string, f Task) TaskService
+	AddFullyTasks(keys []string, f Task) TaskService
 	AddPrefixTask(key string, f Task) TaskService
+	AddPrefixTasks(key []string, f Task) TaskService
 	Match(key string) Task
 }
 
@@ -30,11 +32,28 @@ func (t *taskService) AddFullyTask(key string, f Task) TaskService {
 	return t
 }
 
+func (t *taskService) AddFullyTasks(keys []string, f Task) TaskService {
+	for k := range keys {
+		t.fullyTasks[keys[k]] = f
+	}
+	return t
+}
+
 func (t *taskService) AddPrefixTask(key string, f Task) TaskService {
 	t.prefixTasks = append(t.prefixTasks, prefixTask{
 		key:      key,
 		taskFunc: f,
 	})
+	return t
+}
+
+func (t *taskService) AddPrefixTasks(keys []string, f Task) TaskService {
+	for k := range keys {
+		t.prefixTasks = append(t.prefixTasks, prefixTask{
+			key:      keys[k],
+			taskFunc: f,
+		})
+	}
 	return t
 }
 
