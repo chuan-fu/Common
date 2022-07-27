@@ -13,9 +13,11 @@ require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
 	github.com/DADDYLAB/ants v0.0.0-20190319144224-b5827a1b73b1
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
+	github.com/ahmetb/go-linq v2.0.0-rc0+incompatible
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129
 	github.com/apache/rocketmq-client-go/v2 v2.0.0
 	github.com/bytedance/sonic v1.3.1
+	github.com/eiannone/keyboard v0.0.0-20220611211555-0d226195f203
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang/mock v1.6.0 // indirect
@@ -40,7 +42,6 @@ require (
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/net v0.0.0-20220421235706-1d1ef9303861 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
