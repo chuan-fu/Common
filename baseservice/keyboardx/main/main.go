@@ -19,7 +19,11 @@ func main() {
 		}
 		fmt.Println("\nKeyboardX 1 end =>", s)
 		return
-	})
+	}, keyboardx.WithPreHandle(func(s string) {
+		fmt.Println("WithPreHandle:", s)
+	}), keyboardx.WithPostHandle(func(s string) {
+		fmt.Println("WithPostHandle:", s)
+	}))
 	if err != nil {
 		log.Error(err)
 		return

@@ -7,12 +7,13 @@ const (
 )
 
 type config struct {
-	prefix     string
-	grep       int
-	bufferSize int      // 缓冲区
-	cmdList    []string // 默认指令
-	taskSvc    TaskService
-	emptyEnter Task // 空回车逻辑处理
+	prefix                string
+	grep                  int
+	bufferSize            int      // 缓冲区
+	cmdList               []string // 默认指令
+	taskSvc               TaskService
+	emptyEnter            Task // 空回车逻辑处理
+	preHandle, postHandle func(s string)
 }
 
 type Option func(c *config)
@@ -63,5 +64,17 @@ func WithTask(taskSvc TaskService) Option {
 func WithEmptyEnter(t Task) Option {
 	return func(c *config) {
 		c.emptyEnter = t
+	}
+}
+
+func WithPreHandle(f func(s string)) Option {
+	return func(c *config) {
+		c.preHandle = f
+	}
+}
+
+func WithPostHandle(f func(s string)) Option {
+	return func(c *config) {
+		c.postHandle = f
 	}
 }

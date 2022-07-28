@@ -24,12 +24,25 @@ func KeyboardX(f Task, opts ...Option) error {
 	c := buildConfig(opts)
 
 	checkTask := func(s string) Task {
-		if c.taskSvc != nil {
-			if task := c.taskSvc.Match(s); task != nil {
-				return task
+		handle := func(task Task) Task {
+			return func(s string) (isEnd bool, err error) {
+				if c.preHandle != nil {
+					c.preHandle(s)
+				}
+				defer func() {
+					if c.postHandle != nil {
+						c.postHandle(s)
+					}
+				}()
+				return task(s)
 			}
 		}
-		return f
+		if c.taskSvc != nil {
+			if task := c.taskSvc.Match(s); task != nil {
+				return handle(task)
+			}
+		}
+		return handle(f)
 	}
 
 	keysEvents, err := keyboard.GetKeys(c.bufferSize)
