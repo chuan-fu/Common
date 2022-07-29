@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	space       = " "
-	grepReplace = `%c[1;31m%s%c[0m` // 颜色替换 0x1B[0;31m %s 0x1B[0m
+	space = " "
 )
 
 type Task func(s string) (isEnd bool, err error)
@@ -256,7 +255,7 @@ func (c *commandHistory) find(s string, index int) (original, show string) {
 		if strings.HasPrefix(c.commandList[i], s) {
 			if index == 0 {
 				original = c.commandList[i]
-				show = fmt.Sprintf(strings.Replace(original, s, grepReplace, 1), c.grep, s, c.grep)
+				show = fmt.Sprintf(strings.Replace(original, s, util.GrepReplace, 1), c.grep, s, c.grep)
 				return
 			}
 			index--
@@ -279,7 +278,7 @@ func (c *commandHistory) History(key string, grep int) {
 			for i := 0; i < count; i++ {
 				vL = append(vL, c.grep, key, c.grep)
 			}
-			fmtList.Add(fmt.Sprintf(strings.ReplaceAll(v, key, grepReplace), vL...))
+			fmtList.Add(fmt.Sprintf(strings.ReplaceAll(v, key, util.GrepReplace), vL...))
 		}
 	}
 	fmt.Println(fmtList.String())

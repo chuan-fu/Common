@@ -18,6 +18,7 @@ require (
 	github.com/apache/rocketmq-client-go/v2 v2.0.0
 	github.com/bytedance/sonic v1.3.1
 	github.com/eiannone/keyboard v0.0.0-20220611211555-0d226195f203
+	github.com/fatih/color v1.13.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang/mock v1.6.0 // indirect

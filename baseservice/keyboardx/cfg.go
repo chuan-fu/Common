@@ -1,11 +1,10 @@
 package keyboardx
 
-const (
-	prefix            = "-> # "
-	redGrep           = 0x1B // 红色
-	defaultBufferSize = 10
+import "github.com/chuan-fu/Common/util"
 
-	CmdHistory = "history"
+const (
+	DefaultBufferSize = 10
+	CmdHistory        = "history"
 )
 
 type config struct {
@@ -24,9 +23,9 @@ type Option func(c *config)
 
 func buildConfig(opts []Option) *config {
 	c := &config{
-		prefix:      prefix,
-		grep:        redGrep,
-		bufferSize:  defaultBufferSize,
+		prefix:      util.GreenBluePrefix,
+		grep:        util.RedGrep,
+		bufferSize:  DefaultBufferSize,
 		cmdList:     make([]string, 0),
 		needHistory: true,
 	}
