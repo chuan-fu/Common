@@ -74,7 +74,7 @@ func KeyboardX(f Task, opts ...Option) error {
 				str.Reset()
 
 				// 历史命令 history XXX
-				isHistory := c.needHistory && strings.HasPrefix(s, cmdHistory)
+				isHistory := c.needHistory && strings.HasPrefix(s, CmdHistory)
 				if isHistory {
 					cmd.History(s, c.grep)
 					fmt.Print(c.prefix)
@@ -264,7 +264,7 @@ func (c *commandHistory) find(s string, index int) (original, show string) {
 }
 
 func (c *commandHistory) History(key string, grep int) {
-	key = strings.TrimSpace(strings.TrimPrefix(key, cmdHistory))
+	key = strings.TrimSpace(strings.TrimPrefix(key, CmdHistory))
 	if key == "" {
 		for _, v := range c.commandList {
 			fmt.Println(v)
