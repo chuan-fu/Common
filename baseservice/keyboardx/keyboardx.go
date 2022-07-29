@@ -115,6 +115,7 @@ func KeyboardX(f Task, opts ...Option) error {
 			str.WriteString(space)
 			fmt.Print(space)
 		case keyboard.KeyCtrlC, keyboard.KeyCtrlX, keyboard.KeyCtrlZ:
+			fmt.Println()
 			return nil
 		case keyboard.KeyArrowUp, keyboard.KeyArrowDown, keyboard.KeyPgup, keyboard.KeyPgdn:
 			s := cmd.setIndex(func() int {
