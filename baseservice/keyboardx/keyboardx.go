@@ -275,12 +275,8 @@ func (c *commandHistory) History(key string, grep int) {
 			fmtList.Add(c.commandList[k])
 			continue
 		}
-		if count := strings.Count(v, key); count > 0 {
-			vL := make([]interface{}, 0, count*3)
-			for i := 0; i < count; i++ {
-				vL = append(vL, c.grep, key, c.grep)
-			}
-			fmtList.Add(fmt.Sprintf(strings.ReplaceAll(v, key, util.GrepReplace), vL...))
+		if strings.Contains(v, key) {
+			fmtList.Add(util.FmtColor(v, key, c.grep))
 		}
 	}
 	fmt.Println(fmtList.String())
