@@ -72,7 +72,15 @@ func KeyboardX(f Task, opts ...Option) error {
 			if str.Len() > 0 {
 				s := str.String()
 				str.Reset()
-				cmd.add(s)
+
+				// 校验是否加入历史数据
+				if c.checkInHistoryHandle != nil {
+					if s2, ok := c.checkInHistoryHandle(s); ok {
+						cmd.add(s2)
+					}
+				} else {
+					cmd.add(s)
+				}
 
 				if task := checkTask(s); task != nil {
 					isEnd, err = task(s)

@@ -14,6 +14,7 @@ type config struct {
 	taskSvc               TaskService
 	emptyEnter            Task // 空回车逻辑处理
 	preHandle, postHandle func(s string)
+	checkInHistoryHandle  func(s string) (string, bool) // 校验是否加入历史
 }
 
 type Option func(c *config)
@@ -76,5 +77,11 @@ func WithPreHandle(f func(s string)) Option {
 func WithPostHandle(f func(s string)) Option {
 	return func(c *config) {
 		c.postHandle = f
+	}
+}
+
+func WithCheckInHistory(f func(s string) (string, bool)) Option {
+	return func(c *config) {
+		c.checkInHistoryHandle = f
 	}
 }
