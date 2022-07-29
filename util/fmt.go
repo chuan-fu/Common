@@ -45,8 +45,8 @@ var (
 	WhiteArrow     = fmt.Sprintf(`%c[1;37m➜ %c[0m`, 0x1B, 0x1B) // 白色
 
 	DefaultPrefix   = "-> # "
-	RedBluePrefix   = fmt.Sprintf(`%c[1;31m➜ %c[0m%c[1;34m# %c[0m`, 0x1B, 0x1B, 0x1B, 0x1B)
-	GreenBluePrefix = fmt.Sprintf(`%c[1;32m➜ %c[0m%c[1;34m# %c[0m`, 0x1B, 0x1B, 0x1B, 0x1B)
+	RedBluePrefix   = fmt.Sprintf(`%c[1;31m➜ %c[0m%c[1;34m## %c[0m`, 0x1B, 0x1B, 0x1B, 0x1B)
+	GreenBluePrefix = fmt.Sprintf(`%c[1;32m➜ %c[0m%c[1;34m## %c[0m`, 0x1B, 0x1B, 0x1B, 0x1B)
 )
 
 type fmtGrain struct {
