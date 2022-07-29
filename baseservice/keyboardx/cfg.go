@@ -8,7 +8,7 @@ const (
 
 type config struct {
 	prefix                string
-	grep                  int
+	grep                  int      // 颜色
 	bufferSize            int      // 缓冲区
 	cmdList               []string // 默认指令
 	taskSvc               TaskService
