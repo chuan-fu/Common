@@ -4,6 +4,8 @@ const (
 	prefix            = "-> # "
 	redGrep           = 0x1B // 红色
 	defaultBufferSize = 10
+
+	CmdHistory = "history"
 )
 
 type config struct {
@@ -15,16 +17,18 @@ type config struct {
 	emptyEnter            Task // 空回车逻辑处理
 	preHandle, postHandle func(s string)
 	checkInHistoryHandle  func(s string) (string, bool) // 校验是否加入历史
+	needHistory           bool
 }
 
 type Option func(c *config)
 
 func buildConfig(opts []Option) *config {
 	c := &config{
-		prefix:     prefix,
-		grep:       redGrep,
-		bufferSize: defaultBufferSize,
-		cmdList:    make([]string, 0),
+		prefix:      prefix,
+		grep:        redGrep,
+		bufferSize:  defaultBufferSize,
+		cmdList:     make([]string, 0),
+		needHistory: true,
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -83,5 +87,11 @@ func WithPostHandle(f func(s string)) Option {
 func WithCheckInHistory(f func(s string) (string, bool)) Option {
 	return func(c *config) {
 		c.checkInHistoryHandle = f
+	}
+}
+
+func WithNeedHistory(b bool) Option {
+	return func(c *config) {
+		c.needHistory = b
 	}
 }

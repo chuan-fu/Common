@@ -73,6 +73,13 @@ func KeyboardX(f Task, opts ...Option) error {
 				s := str.String()
 				str.Reset()
 
+				// 历史命令 history XXX
+				isHistory := c.needHistory && strings.HasPrefix(s, cmdHistory)
+				if isHistory {
+					cmd.History(s, c.grep)
+					fmt.Print(c.prefix)
+				}
+
 				// 校验是否加入历史数据
 				if c.checkInHistoryHandle != nil {
 					if s2, ok := c.checkInHistoryHandle(s); ok {
@@ -80,6 +87,10 @@ func KeyboardX(f Task, opts ...Option) error {
 					}
 				} else {
 					cmd.add(s)
+				}
+
+				if isHistory { // 如果历史触发，则不触发后续任务
+					continue
 				}
 
 				if task := checkTask(s); task != nil {
@@ -250,4 +261,24 @@ func (c *commandHistory) find(s string, index int) (original, show string) {
 		}
 	}
 	return
+}
+
+func (c *commandHistory) History(key string, grep int) {
+	key = strings.TrimSpace(strings.TrimPrefix(key, cmdHistory))
+	if key == "" {
+		for _, v := range c.commandList {
+			fmt.Println(v)
+		}
+		return
+	}
+	for _, v := range c.commandList {
+		if count := strings.Count(v, key); count > 0 {
+			vL := make([]interface{}, 0, count*3)
+			for i := 0; i < count; i++ {
+				vL = append(vL, c.grep, key, c.grep)
+			}
+			fmt.Printf(strings.ReplaceAll(v, key, grepReplace), vL...)
+			fmt.Println()
+		}
+	}
 }

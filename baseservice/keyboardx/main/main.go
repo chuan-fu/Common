@@ -10,10 +10,10 @@ import (
 func main() {
 	err := keyboardx.KeyboardX(func(s string) (isEnd bool, err error) {
 		fmt.Println("\nKeyboardX 1 start =>", s)
-		err = keyboardx.KeyboardX(func(s string) (isEnd bool, err error) {
-			fmt.Println("\nKeyboardX 2 =>", s)
-			return
-		})
+		//err = keyboardx.KeyboardX(func(s string) (isEnd bool, err error) {
+		//	fmt.Println("\nKeyboardX 2 =>", s)
+		//	return
+		//})
 		if err != nil {
 			log.Error(err)
 		}
