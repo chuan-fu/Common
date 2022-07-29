@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/chuan-fu/Common/util"
+
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/eiannone/keyboard"
 )
@@ -265,20 +267,20 @@ func (c *commandHistory) find(s string, index int) (original, show string) {
 
 func (c *commandHistory) History(key string, grep int) {
 	key = strings.TrimSpace(strings.TrimPrefix(key, CmdHistory))
-	if key == "" {
-		for _, v := range c.commandList {
-			fmt.Println(v)
+
+	fmtList := util.NewFmtList()
+	for k, v := range c.commandList {
+		if key == "" {
+			fmtList.Add(c.commandList[k])
+			continue
 		}
-		return
-	}
-	for _, v := range c.commandList {
 		if count := strings.Count(v, key); count > 0 {
 			vL := make([]interface{}, 0, count*3)
 			for i := 0; i < count; i++ {
 				vL = append(vL, c.grep, key, c.grep)
 			}
-			fmt.Printf(strings.ReplaceAll(v, key, grepReplace), vL...)
-			fmt.Println()
+			fmtList.Add(fmt.Sprintf(strings.ReplaceAll(v, key, grepReplace), vL...))
 		}
 	}
+	fmt.Println(fmtList.String())
 }
