@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/chuan-fu/Common/baseservice/colorx"
+
 	"github.com/chuan-fu/Common/util"
 
 	"github.com/chuan-fu/Common/zlog"
@@ -77,7 +79,7 @@ func KeyboardX(f Task, opts ...Option) error {
 				// 历史命令 history XXX
 				isHistory := c.needHistory && strings.HasPrefix(s, CmdHistory)
 				if isHistory {
-					cmd.History(s, c.grep)
+					cmd.History(s)
 					fmt.Print(c.prefix)
 				}
 
@@ -257,7 +259,7 @@ func (c *commandHistory) find(s string, index int) (original, show string) {
 		if strings.HasPrefix(c.commandList[i], s) {
 			if index == 0 {
 				original = c.commandList[i]
-				show = fmt.Sprintf(strings.Replace(original, s, util.GrepReplace, 1), c.grep, s, c.grep)
+				show = fmt.Sprintf(strings.Replace(original, s, colorx.GrepReplace, 1), c.grep, s, c.grep)
 				return
 			}
 			index--
@@ -266,7 +268,7 @@ func (c *commandHistory) find(s string, index int) (original, show string) {
 	return
 }
 
-func (c *commandHistory) History(key string, grep int) {
+func (c *commandHistory) History(key string) {
 	key = strings.TrimSpace(strings.TrimPrefix(key, CmdHistory))
 
 	fmtList := util.NewFmtList()
@@ -276,7 +278,7 @@ func (c *commandHistory) History(key string, grep int) {
 			continue
 		}
 		if strings.Contains(v, key) {
-			fmtList.Add(util.FmtColor(v, key, c.grep))
+			fmtList.Add(colorx.KeywordsSprintf(c.grep, v, key))
 		}
 	}
 	fmt.Println(fmtList.String())

@@ -1,6 +1,8 @@
 package keyboardx
 
-import "github.com/chuan-fu/Common/util"
+import (
+	"github.com/chuan-fu/Common/baseservice/colorx"
+)
 
 const (
 	DefaultBufferSize = 10
@@ -23,8 +25,8 @@ type Option func(c *config)
 
 func buildConfig(opts []Option) *config {
 	c := &config{
-		prefix:      util.GreenBluePrefix,
-		grep:        util.RedGrep,
+		prefix:      colorx.GreenBluePrefix,
+		grep:        colorx.WordRed,
 		bufferSize:  DefaultBufferSize,
 		cmdList:     make([]string, 0),
 		needHistory: true,
