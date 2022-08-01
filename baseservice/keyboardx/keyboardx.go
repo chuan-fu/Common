@@ -57,7 +57,7 @@ func KeyboardX(f Task, opts ...Option) error {
 	str := bytes.Buffer{}
 	var isEnd bool
 
-	cmd := newCommandHistory(c.cmdList, c.grep)
+	cmd := newCommandHistory(c.cmdList, c.color)
 	newTab := newTabSvc()
 
 	fmt.Print(c.prefix)
@@ -215,15 +215,15 @@ func (t *tabSvc) init(s string) {
 type commandHistory struct {
 	commandList []string
 	sum, index  int
-	grep        int
+	color       int
 }
 
-func newCommandHistory(cmdList []string, grep int) *commandHistory {
+func newCommandHistory(cmdList []string, color int) *commandHistory {
 	return &commandHistory{
 		commandList: cmdList,
 		sum:         len(cmdList),
 		index:       len(cmdList),
-		grep:        grep,
+		color:       color,
 	}
 }
 
@@ -259,7 +259,7 @@ func (c *commandHistory) find(s string, index int) (original, show string) {
 		if strings.HasPrefix(c.commandList[i], s) {
 			if index == 0 {
 				original = c.commandList[i]
-				show = fmt.Sprintf(strings.Replace(original, s, colorx.GrepReplace, 1), c.grep, s, c.grep)
+				show = fmt.Sprintf("%s%s", colorx.Sprint(c.color, s), original[len(s):])
 				return
 			}
 			index--
@@ -278,7 +278,7 @@ func (c *commandHistory) History(key string) {
 			continue
 		}
 		if strings.Contains(v, key) {
-			fmtList.Add(colorx.KeywordsSprintf(c.grep, v, key))
+			fmtList.Add(colorx.KeywordsSprintf(c.color, v, key))
 		}
 	}
 	fmt.Println(fmtList.String())

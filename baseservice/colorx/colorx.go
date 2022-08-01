@@ -29,7 +29,8 @@ fmt.Printf("%c[1;37;41m 内容 %c[0m", 0x1B, 0x1B)
 */
 
 const (
-	GrepReplace = `%c[1;31m%s%c[0m` // 颜色替换 0x1B[0;31m %s 0x1B[0m
+	GrepReplace = `%c[1;%dm%s%c[0m` // 颜色替换 0x1B[0;31m %s 0x1B[0m
+	GrepMark    = 0x1B
 )
 
 const (
@@ -79,9 +80,9 @@ func KeywordsSprintf(color int, s, keywords string) string {
 		return s
 	}
 	if count := strings.Count(s, keywords); count > 0 {
-		l := make([]interface{}, 0, 3*count)
+		l := make([]interface{}, 0, 4*count)
 		for i := 0; i < count; i++ {
-			l = append(l, color, keywords, color)
+			l = append(l, GrepMark, color, keywords, GrepMark)
 		}
 		return fmt.Sprintf(strings.ReplaceAll(s, keywords, GrepReplace), l...)
 	}

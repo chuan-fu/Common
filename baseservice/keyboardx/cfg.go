@@ -11,7 +11,7 @@ const (
 
 type config struct {
 	prefix                string
-	grep                  int      // 颜色
+	color                 int      // 颜色
 	bufferSize            int      // 缓冲区
 	cmdList               []string // 默认指令
 	taskSvc               TaskService
@@ -26,7 +26,7 @@ type Option func(c *config)
 func buildConfig(opts []Option) *config {
 	c := &config{
 		prefix:      colorx.GreenBluePrefix,
-		grep:        colorx.WordRed,
+		color:       colorx.WordRed,
 		bufferSize:  DefaultBufferSize,
 		cmdList:     make([]string, 0),
 		needHistory: true,
@@ -43,9 +43,9 @@ func WithPrefix(prefix string) Option {
 	}
 }
 
-func WithGrep(grep int) Option {
+func WithColor(color int) Option {
 	return func(c *config) {
-		c.grep = grep
+		c.color = color
 	}
 }
 
