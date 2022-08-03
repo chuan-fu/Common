@@ -13,15 +13,15 @@ const (
 	findIndexStart = 0
 )
 
-type CheckInHistoryFunc func(string) (string, bool)
-
 type CmdListServ interface {
+	InitCmdList(list []string)
+	CmdList() []string
+
 	SetColor(color int)
 	Last() string             // 上一个【上键】
 	Next() string             // 下一个【下键】
 	Add(s string) CmdListServ // 添加指令
 
-	AddCheckInHistory(f CheckInHistoryFunc)
 	FindStart(keywords string) (original, show string) // 开始查找，持续查找
 	FindClose()                                        // 结束查找
 
@@ -31,10 +31,9 @@ type CmdListServ interface {
 }
 
 type cmdListServ struct {
-	list           []string
-	sum, index     int
-	color          int
-	checkInHistory CheckInHistoryFunc
+	list       []string
+	sum, index int
+	color      int
 
 	findIndex   int
 	findKeyword string
@@ -48,6 +47,16 @@ func newCmdListServ(list []string) CmdListServ {
 		color:     colorx.WordRed,
 		findIndex: findIndexClose,
 	}
+}
+
+func (c *cmdListServ) InitCmdList(list []string) {
+	c.list = list
+	c.sum = len(list)
+	c.index = c.sum
+}
+
+func (c *cmdListServ) CmdList() []string {
+	return c.list
 }
 
 func (c *cmdListServ) SetColor(color int) {
@@ -73,13 +82,6 @@ func (c *cmdListServ) Next() string {
 }
 
 func (c *cmdListServ) Add(s string) CmdListServ {
-	if c.checkInHistory != nil {
-		var ok bool
-		if s, ok = c.checkInHistory(s); !ok { // 不加入则返回
-			return c
-		}
-	}
-
 	if c.sum > 0 { // 历史最后命令 = s，则不写入
 		if c.list[c.sum-1] == s {
 			c.index = c.sum
@@ -90,10 +92,6 @@ func (c *cmdListServ) Add(s string) CmdListServ {
 	c.sum++
 	c.index = c.sum
 	return c
-}
-
-func (c *cmdListServ) AddCheckInHistory(checkInHistory CheckInHistoryFunc) {
-	c.checkInHistory = checkInHistory
 }
 
 func (c *cmdListServ) FindStart(keywords string) (original, show string) { // 开始查找，持续查找

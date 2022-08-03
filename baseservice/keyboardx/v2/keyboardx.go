@@ -20,11 +20,19 @@ var (
 )
 
 const (
+	fastTaskHistory = 1 << iota
+	fastTaskHelp
+	fastTaskExit
+)
+
+const (
 	CmdHistory        = "history"
 	CmdHistoryDesc    = "历史记录"
 	DefaultBufferSize = 10
 	space             = " "
 )
+
+type CheckInHistoryFunc func(string) (string, bool)
 
 type KeyboardXServ interface {
 	TaskService
@@ -33,12 +41,11 @@ type KeyboardXServ interface {
 	SetColor(color int) KeyboardXServ           // 关键词颜色 默认红色
 	SetBufferSize(bufferSize int) KeyboardXServ // 输入缓冲区 默认为10，基本不用修改
 	SetEntryCmd(t Task) KeyboardXServ           // 空回车逻辑处理
-	SetIsSetCmdInHistory(b bool) KeyboardXServ
+	SetCheckInHistory(f CheckInHistoryFunc) KeyboardXServ
 
 	ResetTaskService(f TaskService) KeyboardXServ
 
-	ResetCmdList(list []string) KeyboardXServ // 覆盖默认内嵌指令
-	CmdList() CmdListServ
+	InitCmdList(list []string) KeyboardXServ // 重置CmdList
 
 	AddHistory() KeyboardXServ
 	AddHelp() KeyboardXServ
@@ -58,18 +65,19 @@ type keyboardX struct {
 
 	runTaskFunc RunTaskFunc // 执行任务 默认baseservice/keyboardx/v2/task.go:41
 
-	isSetCmdInHistory bool        // 是否把task的key写入历史，默认为true
-	cmdListSvc        CmdListServ // 历史指令服务
+	checkInHistoryFunc CheckInHistoryFunc // 校验是否加入历史
+	cmdListSvc         CmdListServ        // 历史指令服务
+
+	fastTask int
 }
 
 func NewKeyboardX() KeyboardXServ {
 	return &keyboardX{
-		prefix:            colorx.GreenBluePrefix,
-		color:             colorx.WordRed,
-		bufferSize:        DefaultBufferSize,
-		TaskService:       NewTaskService(),
-		runTaskFunc:       runTask,
-		isSetCmdInHistory: true,
+		prefix:      colorx.GreenBluePrefix,
+		color:       colorx.WordRed,
+		bufferSize:  DefaultBufferSize,
+		TaskService: NewTaskService(),
+		runTaskFunc: runTask,
 	}
 }
 
@@ -106,8 +114,8 @@ func (k *keyboardX) SetRunTaskFunc(f RunTaskFunc) KeyboardXServ {
 	return k
 }
 
-func (k *keyboardX) SetIsSetCmdInHistory(b bool) KeyboardXServ {
-	k.isSetCmdInHistory = b
+func (k *keyboardX) SetCheckInHistory(f CheckInHistoryFunc) KeyboardXServ {
+	k.checkInHistoryFunc = f
 	return k
 }
 
@@ -116,45 +124,51 @@ func (k *keyboardX) ResetTaskService(taskSvc TaskService) KeyboardXServ {
 	return k
 }
 
-func (k *keyboardX) ResetCmdList(list []string) KeyboardXServ {
-	k.cmdListSvc = newCmdListServ(list)
-	return k
-}
-
-func (k *keyboardX) CmdList() CmdListServ {
+func (k *keyboardX) InitCmdList(list []string) KeyboardXServ {
 	if k.cmdListSvc == nil {
-		k.cmdListSvc = newCmdListServ(nil)
+		k.cmdListSvc = newCmdListServ(list)
+		return k
 	}
-	return k.cmdListSvc
+	k.cmdListSvc.InitCmdList(list)
+	return k
 }
 
 // 使用默认history命令
 func (k *keyboardX) AddHistory() KeyboardXServ {
-	k.AddPrefixTask(CmdHistory, CmdHistoryDesc, k.cmdListSvc.HistoryPrefixTask(keyboardx.CmdHistory))
+	k.fastTask |= fastTaskHistory
 	return k
 }
 
 // 使用默认help命令
 func (k *keyboardX) AddHelp() KeyboardXServ {
-	k.AddHelpTasks(CmdHelp, CmdHelpDesc)
+	k.fastTask |= fastTaskHelp
 	return k
 }
 
 func (k *keyboardX) AddExit() KeyboardXServ {
-	k.AddFullyTasks(CmdExit, CmdExitDesc, NewExitTask())
+	k.fastTask |= fastTaskExit
 	return k
 }
 
-func (k *keyboardX) Run() error {
+func (k *keyboardX) Init() {
 	if k.cmdListSvc == nil {
 		k.cmdListSvc = newCmdListServ(nil)
 	}
 	k.cmdListSvc.SetColor(k.color) // 初始化颜色
-	if k.isSetCmdInHistory {       // 把task的key写入历史
-		for _, v := range k.TaskKeyList() {
-			k.cmdListSvc.Add(v)
-		}
+
+	if k.fastTask&fastTaskHistory > 0 {
+		k.AddPrefixTask(CmdHistory, CmdHistoryDesc, k.cmdListSvc.HistoryPrefixTask(keyboardx.CmdHistory))
 	}
+	if k.fastTask&fastTaskHelp > 0 {
+		k.AddHelpTasks(CmdHelp, CmdHelpDesc)
+	}
+	if k.fastTask&fastTaskExit > 0 {
+		k.AddFullyTasks(CmdExit, CmdExitDesc, NewExitTask())
+	}
+}
+
+func (k *keyboardX) Run() error {
+	k.Init()
 
 	keysEvents, err := keyboard.GetKeys(k.bufferSize)
 	if err != nil {
@@ -184,7 +198,7 @@ func (k *keyboardX) Run() error {
 				if task := k.MatchTask(s); task != nil {
 					isEnd, err = k.runTaskFunc(task, s)
 				}
-				k.cmdListSvc.Add(s)
+				SetHistory(k.checkInHistoryFunc, k.cmdListSvc, s)
 			}
 			if err != nil {
 				log.Error(err)
@@ -261,5 +275,15 @@ func (k *keyboardX) Run() error {
 			cmd.WriteString(s)
 			fmt.Print(s)
 		}
+	}
+}
+
+func SetHistory(check CheckInHistoryFunc, cmdList CmdListServ, s string) {
+	if check == nil {
+		cmdList.Add(s)
+		return
+	}
+	if s2, ok := check(s); ok {
+		cmdList.Add(s2)
 	}
 }
