@@ -7,6 +7,11 @@ import (
 	"github.com/chuan-fu/Common/util"
 )
 
+const (
+	taskTypeFully = iota
+	taskTypePrefix
+)
+
 type TaskService interface {
 	TaskKeyList() []string // key列表
 
@@ -19,7 +24,6 @@ type TaskService interface {
 
 	AddHelpTask(key, desc string) TaskService           // 添加功能介绍
 	AddHelpTasks(key []string, desc string) TaskService // 添加功能介绍
-
 }
 
 type prefixTask struct {
@@ -28,8 +32,9 @@ type prefixTask struct {
 }
 
 type helpShow struct {
-	k []string
-	v string
+	k       []string
+	keyType int
+	v       string
 }
 
 type taskService struct {
@@ -60,13 +65,13 @@ func (t *taskService) DefaultTask(f Task) TaskService {
 }
 
 func (t *taskService) AddFullyTask(key, desc string, f Task) TaskService {
-	t.helpShow = append(t.helpShow, helpShow{[]string{key}, desc})
+	t.helpShow = append(t.helpShow, helpShow{[]string{key}, taskTypeFully, desc})
 	t.fullyTasks[key] = f
 	return t
 }
 
 func (t *taskService) AddFullyTasks(keys []string, desc string, f Task) TaskService {
-	t.helpShow = append(t.helpShow, helpShow{keys, desc})
+	t.helpShow = append(t.helpShow, helpShow{keys, taskTypeFully, desc})
 	for k := range keys {
 		t.fullyTasks[keys[k]] = f
 	}
@@ -74,7 +79,7 @@ func (t *taskService) AddFullyTasks(keys []string, desc string, f Task) TaskServ
 }
 
 func (t *taskService) AddPrefixTask(key, desc string, f Task) TaskService {
-	t.helpShow = append(t.helpShow, helpShow{[]string{key}, desc})
+	t.helpShow = append(t.helpShow, helpShow{[]string{key}, taskTypePrefix, desc})
 	t.prefixTasks = append(t.prefixTasks, prefixTask{
 		key:      key,
 		taskFunc: f,
@@ -83,7 +88,7 @@ func (t *taskService) AddPrefixTask(key, desc string, f Task) TaskService {
 }
 
 func (t *taskService) AddPrefixTasks(keys []string, desc string, f Task) TaskService {
-	t.helpShow = append(t.helpShow, helpShow{keys, desc})
+	t.helpShow = append(t.helpShow, helpShow{keys, taskTypePrefix, desc})
 	for k := range keys {
 		t.prefixTasks = append(t.prefixTasks, prefixTask{
 			key:      keys[k],
@@ -120,7 +125,21 @@ func (t *taskService) help() Task {
 	return NewHandleTask(func(s string) (isEnd bool, err error) {
 		f := util.NewFmtList()
 		for k := range t.helpShow {
-			f.Add(fmt.Sprintf("%s -> %s", strings.Join(t.helpShow[k].k, ", "), t.helpShow[k].v))
+			if len(t.helpShow[k].k) == 0 {
+				continue
+			}
+
+			switch t.helpShow[k].keyType {
+			case taskTypeFully:
+				f.Add(fmt.Sprintf("%s -> %s", strings.Join(t.helpShow[k].k, ", "), t.helpShow[k].v))
+			case taskTypePrefix:
+				if len(t.helpShow[k].k) == 1 {
+					f.Add(fmt.Sprintf("%s xxx -> %s", t.helpShow[k].k[0], t.helpShow[k].v))
+				} else {
+					f.Add(fmt.Sprintf("%s xxx -> %s", strings.Join(t.helpShow[k].k, "/ "), t.helpShow[k].v))
+				}
+			}
+
 		}
 		fmt.Println(f.String())
 		return
