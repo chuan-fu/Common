@@ -11,23 +11,21 @@ replace (
 
 require (
 	github.com/BurntSushi/toml v0.4.1 // indirect
-	github.com/DADDYLAB/ants v0.0.0-20190319144224-b5827a1b73b1
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/ahmetb/go-linq v2.0.0-rc0+incompatible
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129
 	github.com/apache/rocketmq-client-go/v2 v2.0.0
-	github.com/bytedance/sonic v1.3.1
+	github.com/bytedance/sonic v1.4.0
 	github.com/eiannone/keyboard v0.0.0-20220611211555-0d226195f203
-	github.com/fatih/color v1.13.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/jinzhu/configor v1.2.1
 	github.com/kr/text v0.2.0 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/panjf2000/ants/v2 v2.5.0
-	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/robertkrimen/otto v0.0.0-20211024170158-b87d35c0b86f
 	github.com/robfig/cron v1.2.0
