@@ -283,3 +283,7 @@ func (c *commandHistory) History(key string) {
 	}
 	fmt.Println(fmtList.String())
 }
+
+func Close() error {
+	return keyboard.Close()
+}
