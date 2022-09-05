@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/chuan-fu/Common/baseservice/cast"
+
 	"github.com/chuan-fu/Common/baseservice/colorx"
 
 	"github.com/chuan-fu/Common/util"
@@ -286,4 +288,41 @@ func (c *commandHistory) History(key string) {
 
 func Close() error {
 	return keyboard.Close()
+}
+
+func CheckStrList(list []string) (resp string) {
+	switch len(list) {
+	case 0:
+		fmt.Println()
+	case 1:
+		fmt.Printf("%s\n\n", list[0])
+		resp = list[0]
+	default:
+		f := util.NewFmtList()
+		for k := range list {
+			f.Add(list[k])
+		}
+		fmt.Print(f.String())
+
+		_ = KeyboardX(
+			func(s string) (isEnd bool, err error) {
+				index, err2 := cast.ToInt(s)
+				if err2 == nil {
+					index -= 1
+					if len(list) > index && index >= 0 {
+						resp = list[index]
+						return true, nil
+					}
+				}
+				fmt.Println("---下标有误---")
+				return true, nil
+			},
+			WithEmptyEnter(func(s string) (isEnd bool, err error) {
+				resp = list[0]
+				return true, nil
+			}),
+			WithPrefix(colorx.PurpleRedArrow),
+		)
+	}
+	return
 }

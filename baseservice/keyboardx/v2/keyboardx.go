@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/chuan-fu/Common/baseservice/keyboardx"
-
 	"github.com/chuan-fu/Common/baseservice/colorx"
+	"github.com/chuan-fu/Common/baseservice/keyboardx"
 	"github.com/chuan-fu/Common/zlog"
 	"github.com/eiannone/keyboard"
 )
@@ -290,4 +289,8 @@ func SetHistory(check CheckInHistoryFunc, cmdList CmdListServ, s string) {
 
 func Close() error {
 	return keyboard.Close()
+}
+
+func CheckStrList(list []string) (resp string) {
+	return keyboardx.CheckStrList(list)
 }
