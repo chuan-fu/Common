@@ -287,3 +287,7 @@ func SetHistory(check CheckInHistoryFunc, cmdList CmdListServ, s string) {
 		cmdList.Add(s2)
 	}
 }
+
+func Close() error {
+	return keyboard.Close()
+}
