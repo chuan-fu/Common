@@ -16,3 +16,11 @@ var (
 	RedBluePrefix   = fmt.Sprintf(`%c[1;31m➜ %c[0m%c[1;34m## %c[0m`, 0x1B, 0x1B, 0x1B, 0x1B)
 	GreenBluePrefix = fmt.Sprintf(`%c[1;32m➜ %c[0m%c[1;34m## %c[0m`, 0x1B, 0x1B, 0x1B, 0x1B)
 )
+
+func RedBluePrefixWithName(name string) string {
+	return fmt.Sprintf(`%c[1;31m➜%c[0m%c[1;36m %s %c[0m%c[1;34m## %c[0m`, 0x1B, 0x1B, 0x1B, name, 0x1B, 0x1B, 0x1B)
+}
+
+func GreenBluePrefixWithName(name string) string {
+	return fmt.Sprintf(`%c[1;32m➜%c[0m%c[1;36m %s %c[0m%c[1;34m## %c[0m`, 0x1B, 0x1B, 0x1B, name, 0x1B, 0x1B, 0x1B)
+}
