@@ -19,6 +19,7 @@ require (
 	github.com/eiannone/keyboard v0.0.0-20220611211555-0d226195f203
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis/v8 v8.11.4
+	github.com/go-vgo/robotgo v0.100.10
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/jinzhu/configor v1.2.1
 	github.com/kr/text v0.2.0 // indirect
