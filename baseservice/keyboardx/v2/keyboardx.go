@@ -45,6 +45,7 @@ type KeyboardXServ interface {
 	ResetTaskService(f TaskService) KeyboardXServ
 
 	InitCmdList(list []string) KeyboardXServ // 重置CmdList
+	AddCmdList(list interface{}) KeyboardXServ
 
 	AddHistory() KeyboardXServ
 	AddHelp() KeyboardXServ
@@ -129,6 +130,22 @@ func (k *keyboardX) InitCmdList(list []string) KeyboardXServ {
 		return k
 	}
 	k.cmdListSvc.InitCmdList(list)
+	return k
+}
+
+func (k *keyboardX) AddCmdList(list interface{}) KeyboardXServ {
+	if k.cmdListSvc == nil {
+		return k
+	}
+
+	switch s := list.(type) {
+	case string:
+		k.cmdListSvc.Add(s)
+	case []string:
+		for k2 := range s {
+			k.cmdListSvc.Add(s[k2])
+		}
+	}
 	return k
 }
 

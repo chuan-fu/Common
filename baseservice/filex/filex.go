@@ -60,7 +60,7 @@ func WriteFile(path string, data []byte) error {
 
 // 追加式写入
 // 文件不存在则创建
-func AppendFile(path string, data string) error {
+func AppendFile(path, data string) error {
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
 	if err != nil {
 		return err

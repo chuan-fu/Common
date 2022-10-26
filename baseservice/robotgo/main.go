@@ -6,6 +6,7 @@ import (
 	"github.com/go-vgo/robotgo"
 )
 
+// https://blog.csdn.net/q469587851/article/details/115342806
 func main() {
 	/*
 		// 模拟按下1个键：打开开始菜单（win）
